@@ -5532,7 +5532,7 @@ void QCamera3HardwareInterface::handleBufferWithLock(
                 }
             }
             if(i->settings){
-                result.result = i->settings;
+                result.result = settings.release();
                 result.partial_result = PARTIAL_RESULT_COUNT;
             }
             result.input_buffer = i->input_buffer;
@@ -5563,6 +5563,10 @@ void QCamera3HardwareInterface::handleBufferWithLock(
         mPendingBuffersMap.removeBuf(buffer->buffer);
 
         orchestrateResult(&result);
+        if (result.result != NULL) {
+            free_camera_metadata(const_cast<camera_metadata_t*>(result.result));
+        }
+        free(const_cast<camera3_stream_buffer_t*>(result.input_buffer));
     } else {
        for (List<RequestedBufferInfo>::iterator j = i->buffers.begin();
            j != i->buffers.end(); j++) {
