@@ -5,11 +5,5 @@ allow radio hal_iwlan_hwservice:hwservice_manager find;
 
 get_prop(radio, vendor_qcom_ims_prop)
 
-# Сначала объявляем новый тип сервиса
-type qchook_service, service_manager_type;
-
-# Теперь используем только что объявленный тип
-allow radio qchook_service:service_manager add;
-
 add_service(radio, qcrilhook_service)
 allow radio qcrilhook_service:service_manager find;
