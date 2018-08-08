@@ -2480,9 +2480,13 @@ int32_t QCamera3PostProcessor::encodeData(qcamera_hal3_jpeg_data_t *jpeg_job_dat
         if(jpeg_settings->image_type == CAM_HAL3_JPEG_TYPE_DEPTH ||
              jpeg_settings->image_type == CAM_HAL3_JPEG_TYPE_BOKEH)
         {
-            getJpegEncodeConfig(encodeParam, main_stream, jpeg_settings, recvd_frame->bufs[0]);
+            ret = getJpegEncodeConfig(encodeParam, main_stream, jpeg_settings, recvd_frame->bufs[0]);
         } else {
-            getJpegEncodeConfig(encodeParam, main_stream, jpeg_settings);
+            ret = getJpegEncodeConfig(encodeParam, main_stream, jpeg_settings);
+        }
+        if (ret != NO_ERROR) {
+            LOGE("Error generating jpeg configuration: %d", ret);
+            return ret;
         }
         LOGH("#src bufs:%d # tmb bufs:%d #dst_bufs:%d",
                      encodeParam.num_src_bufs,encodeParam.num_tmb_bufs,encodeParam.num_dst_bufs);
