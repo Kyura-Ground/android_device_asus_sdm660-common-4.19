@@ -14645,16 +14645,11 @@ int32_t QCamera3HardwareInterface::setHalFpsRange(const CameraMetadata &settings
             settings.find(ANDROID_CONTROL_AE_TARGET_FPS_RANGE).data.i32[1];
     fps_range.video_min_fps = fps_range.min_fps;
     fps_range.video_max_fps = fps_range.max_fps;
-    // After reading ANDROID_CONTROL_AE_TARGET_FPS_RANGE into fps_range
     if (CAMERA3_STREAM_CONFIGURATION_CONSTRAINED_HIGH_SPEED_MODE != mOpMode) {
-    // If framework requests fixed 30, relax it
-    if ((int)fps_range.min_fps == 30 && (int)fps_range.max_fps == 30) {
-        fps_range.min_fps = 15.0f;
-        fps_range.video_min_fps = 15.0f;
-        // keep max fixed
-        fps_range.max_fps = 30.0f;
-        fps_range.video_max_fps = 30.0f;
-        LOGD("FPS PATCH (HAL): request [30,30] -> [15,30]");
+        // Let the legacy AEC backend increase exposure in low light, including 24 FPS video.
+        if (fps_range.min_fps > 15.0f) {
+            fps_range.min_fps = 15.0f;
+            fps_range.video_min_fps = 15.0f;
         }
     }
     if (fps_range.min_fps == 0 && fps_range.max_fps == 0) {
