@@ -204,6 +204,11 @@
     <bool name="config_device_wfc_ims_available">true</bool>
     <bool name="config_carrier_volte_tty_supported">true</bool>
 
+    <!-- Qualcomm IWLAN services -->
+    <string name="config_wlan_data_service_package" translatable="false">vendor.qti.iwlan</string>
+    <string name="config_wlan_network_service_package" translatable="false">vendor.qti.iwlan</string>
+    <string name="config_qualified_networks_service_package" translatable="false">vendor.qti.iwlan</string>
+
     <bool name="config_switch_phone_on_voice_reg_state_change">false</bool>
     <bool name="config_voice_data_sms_auto_fallback">true</bool>
     <bool name="config_useVideoPauseWorkaround">true</bool>
