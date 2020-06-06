@@ -171,7 +171,7 @@ static void NFC_check()
     if (infile.is_open() && getline(infile, line)) {
         infile.close();
         
-        if (line.find("SUPPORTED") != std::string::npos) {
+        if (line == "SUPPORTED") {
             property_override("ro.hq.support.nfc", "1");
             property_override("ro.boot.product.hardware.sku", "NFC");
             property_override("persist.sys.nfc.supported", "true");
