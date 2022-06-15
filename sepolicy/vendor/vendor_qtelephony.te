@@ -1,5 +1,2 @@
 dontaudit vendor_qtelephony default_android_service:service_manager { find };
 dontaudit vendor_qtelephony vendor_default_prop:file { open getattr map };
-dontaudit vendor_qtelephony vendor_qcom_ims_prop:property_service { set };
-allow vendor_qtelephony property_socket:sock_file { write };
-allow vendor_qtelephony init:unix_stream_socket { connectto };

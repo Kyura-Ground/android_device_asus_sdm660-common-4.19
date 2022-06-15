@@ -17,7 +17,6 @@ persist.vendor.runin.fp                       u:object_r:vendor_fingerprint_prop
 persist.vendor.mwqem.                         u:object_r:vendor_mwqem_prop:s0
 
 # IMS
-persist.vendor.ims.playout_delay              u:object_r:vendor_qcom_ims_prop:s0
 vendor.vt.impl.lib                            u:object_r:vendor_qcom_ims_prop:s0
 
 # CND
