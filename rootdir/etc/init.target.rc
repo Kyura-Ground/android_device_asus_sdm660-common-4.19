@@ -13,10 +13,7 @@ on early-init
 
     wait /dev/msm-rng 2
 
-    # /metadata must exist early on Android 15/16
-    # If later you add a real metadata partition to fstab,
-    # remove this tmpfs mount.
-    mount tmpfs tmpfs /metadata size=16m,mode=0771,uid=0,gid=1000
+    # First-stage init mounts logdump at /metadata before these directories.
     mkdir /metadata/aconfig 0775 root system
     mkdir /metadata/vold 0700 root root
     restorecon_recursive /metadata
