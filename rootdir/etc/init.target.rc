@@ -2,7 +2,7 @@
 #
 # ASUS X00TD / X01BD — init.target.rc
 # Kernel 4.19, Android 15/16, SDM660/SDM636
-# Tuned for FBE v1 + legacy Keymaster 3.0
+# FBE v2 eMMC optimized + Keymaster 3.0
 
 # ─────────────────────────────────────────────────────────────
 # early-init
