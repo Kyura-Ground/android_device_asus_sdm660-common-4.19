@@ -1,6 +1,6 @@
 # Non-A/B fstab.qcom - ASUS X00TD / X01BD
 # Android 15/16, kernel 4.19
-# FBE v1 legacy + Keymaster 3.0
+# FBE v2 eMMC optimized + Keymaster 3.0
 
 # Boot partitions
 /dev/block/bootdevice/by-name/boot                                      /boot                  emmc   defaults                                                                                         defaults
@@ -9,8 +9,8 @@
 /dev/block/by-name/vendor                                               /vendor                ext4   ro                                                                                               wait,first_stage_mount
 
 # Userdata
-/dev/block/bootdevice/by-name/userdata           /data               ext4    nosuid,nodev,barrier=1,noauto_da_alloc,discard,noatime,lazytime                       latemount,wait,check,formattable,quota,fileencryption=aes-256-xts:aes-256-cts:v1+emmc_optimized,reservedsize=128M,fsverity
-/dev/block/bootdevice/by-name/userdata           /data               f2fs    nosuid,nodev,noatime,discard,background_gc=off,fsync_mode=nobarrier,lazytime         latemount,wait,check,formattable,quota,fileencryption=aes-256-xts:aes-256-cts:v1+emmc_optimized,reservedsize=128M,fsverity
+/dev/block/bootdevice/by-name/userdata           /data               ext4    nosuid,nodev,barrier=1,noauto_da_alloc,discard,noatime,lazytime                       latemount,wait,check,formattable,quota,fileencryption=aes-256-xts:aes-256-cts:v2+emmc_optimized,reservedsize=128M,fsverity
+/dev/block/bootdevice/by-name/userdata           /data               f2fs    nosuid,nodev,noatime,discard,background_gc=off,fsync_mode=nobarrier,lazytime         latemount,wait,check,formattable,quota,fileencryption=aes-256-xts:aes-256-cts:v2+emmc_optimized,reservedsize=128M,fsverity
 
 
 # External storage
