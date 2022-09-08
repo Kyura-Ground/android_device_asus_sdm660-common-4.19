@@ -14,6 +14,11 @@ $(call inherit-product, vendor/asus/sdm660-common/sdm660-common-vendor.mk)
 # Non-A/B partition scheme
 $(call inherit-product, $(SRC_TARGET_DIR)/product/non_ab_device.mk)
 
+# A-only retrofit uses the stock system/vendor devices as super backing.
+# Keep the generic dynamic-partition build and its super_empty metadata image;
+# PRODUCT_RETROFIT_DYNAMIC_PARTITIONS is restricted to A/B by releasetools.
+PRODUCT_USE_DYNAMIC_PARTITIONS := true
+
 # Inherit our signing key
 $(call inherit-product-if-exists, vendor/evolution-priv/keys/keys.mk)
 
