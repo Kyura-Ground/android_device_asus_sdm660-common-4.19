@@ -1,3 +1,6 @@
+# Physical system and vendor store the logical-partition metadata and extents.
+typeattribute system_block_device super_block_device_type;
+
 type latency_device, dev_type;
 
 # Fingerprint device types

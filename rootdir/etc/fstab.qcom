@@ -1,12 +1,15 @@
-# Non-A/B fstab.qcom - ASUS X00TD / X01BD
-# Android 15/16, kernel 4.19
+# Non-A/B retrofit dynamic fstab.qcom - ASUS X00TD / X01BD
+# Android 17, kernel 4.19
 # FBE v2 eMMC optimized + Keymaster 3.0
 
 # Boot partitions
 /dev/block/bootdevice/by-name/boot                                      /boot                  emmc   defaults                                                                                         defaults
 /dev/block/bootdevice/by-name/recovery                                  /recovery              emmc   defaults                                                                                         recoveryonly
-/dev/block/by-name/system                                               /system                ext4   ro                                                                                               wait,first_stage_mount
-/dev/block/by-name/vendor                                               /vendor                ext4   ro                                                                                               wait,first_stage_mount
+system                                                                 /system                ext4   ro,barrier=1,discard                                                                             wait,logical,first_stage_mount
+system_ext                                                             /system_ext            ext4   ro,barrier=1,discard                                                                             wait,logical,first_stage_mount
+product                                                                /product               ext4   ro,barrier=1,discard                                                                             wait,logical,first_stage_mount
+vendor                                                                 /vendor                ext4   ro,barrier=1,discard                                                                             wait,logical,first_stage_mount
+odm                                                                    /odm                   ext4   ro,barrier=1,discard                                                                             wait,logical,first_stage_mount
 
 # Userdata
 /dev/block/bootdevice/by-name/userdata           /data               ext4    nosuid,nodev,barrier=1,noauto_da_alloc,discard,noatime,lazytime                       latemount,wait,check,formattable,quota,fileencryption=aes-256-xts:aes-256-cts:v2+emmc_optimized,reservedsize=128M,fsverity
