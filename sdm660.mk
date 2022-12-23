@@ -196,7 +196,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/displayconfig/display_id_0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/displayconfig/display_id_0.xml
 
 # Дисплей — системные свойства GPU/EGL/Vulkan
-PRODUCT_PROPERTY_OVERRIDES += \
+PRODUCT_VENDOR_PROPERTIES += \
     ro.hardware.egl=adreno \
     ro.hardware.vulkan=adreno \
     ro.opengles.version=196610 \
@@ -212,7 +212,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
     vendor.video.disable.ubwc=1
 
 # Дисплей — свойства SurfaceFlinger
-PRODUCT_PROPERTY_OVERRIDES += \
+PRODUCT_VENDOR_PROPERTIES += \
     ro.surface_flinger.force_hwc_copy_for_virtual_displays=true \
     ro.surface_flinger.max_frame_buffer_acquired_buffers=3 \
     ro.surface_flinger.max_virtual_display_dimension=4096 \
@@ -428,7 +428,7 @@ PRODUCT_PACKAGES += \
 # OEM Unlock
 # ============================================================
 
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+PRODUCT_VENDOR_PROPERTIES += \
     ro.oem_unlock_supported=1
 
 # ============================================================
