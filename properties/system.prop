@@ -52,7 +52,6 @@ ro.charger.enable_suspend=true
 # SurfaceFlinger VDS & Composition
 debug.sf.enable_hwc_vds=0
 debug.sf.predict_hwc_composition_strategy=0
-debug.sf.disable_client_composition_cache=1
 
 # SurfaceFlinger Timing (60Hz optimized)
 debug.sf.use_phase_offsets_as_durations=1
