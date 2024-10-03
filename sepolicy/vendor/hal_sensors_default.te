@@ -8,3 +8,5 @@ allow hal_sensors_default self:netlink_kobject_uevent_socket { create read };
 allow hal_sensors_default sysfs:dir { open read };
 allow hal_sensors_default sysfs:file { getattr open read write };
 get_prop(hal_sensors_default, nfc_nq_prop)
+
+set_prop(hal_sensors_default, asus_sensors_prop)
