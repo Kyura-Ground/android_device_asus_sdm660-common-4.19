@@ -268,6 +268,8 @@ TARGET_COPY_OUT_VENDOR     := vendor
 
 # Симлинки в корне rootfs
 BOARD_ROOT_EXTRA_SYMLINKS := \
+    /vendor/dsp:/dsp \
+    /vendor/firmware_mnt:/firmware \
     /mnt/vendor/persist:/persist
 
 # Не используем A/B OTA
