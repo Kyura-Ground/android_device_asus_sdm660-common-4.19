@@ -319,6 +319,12 @@ void FingerprintSession::legacyNotify(const fingerprint_msg_t* msg) {
             int32_t vendorCode = 0;
             AcquiredInfo result =
                 vendorAcquiredFilter(msg->data.acquired.acquired_info, &vendorCode);
+            // These private CDFinger status codes have no framework help text.
+            if (result == AcquiredInfo::VENDOR &&
+                (vendorCode == 102 || vendorCode == 1001)) {
+                ALOGD("Ignoring CDFinger acquired status %d", vendorCode);
+                break;
+            }
             ALOGD("onAcquired(%d, vendorCode=%d)", result, vendorCode);
             self->mCb->onAcquired(result, vendorCode);
             break;
