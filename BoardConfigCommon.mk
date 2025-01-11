@@ -302,6 +302,11 @@ TARGET_RECOVERY_PIXEL_FORMAT  := RGBX_8888
 TARGET_RECOVERY_UPDATER_LIBS  := librecovery_updater_asus
 TARGET_RELEASETOOLS_EXTENSIONS := $(VENDOR_PATH)
 
+# Evaluate after device configuration, as the previous Android.mk did.
+SOONG_CONFIG_NAMESPACES += asus_recovery
+SOONG_CONFIG_asus_recovery += uses_bootdevice_path
+SOONG_CONFIG_asus_recovery_uses_bootdevice_path = $(if $(TARGET_PLATFORM_DEVICE_BASE),true,false)
+
 
 # ============================================================
 # RIL
