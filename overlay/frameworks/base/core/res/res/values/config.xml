@@ -283,7 +283,6 @@
     <bool name="config_useDevInputEventForAudioJack">true</bool>
     <bool name="config_supportAudioSourceUnprocessed">false</bool>
     <bool name="config_camera_sound_forced">false</bool>
-    <bool name="config_speed_up_audio_on_mt_calls">true</bool>
     <bool name="config_alias_ring_notif_stream_types">false</bool>
 
     <bool name="config_hearing_aid_profile_supported">true</bool>
