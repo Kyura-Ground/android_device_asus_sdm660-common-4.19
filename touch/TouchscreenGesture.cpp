@@ -72,12 +72,15 @@ namespace touch {
         const Gesture& in_gesture, bool in_enabled) {
     const auto entry = kGestureInfoMap.find(in_gesture.id);
     if (entry == kGestureInfoMap.end()) {
-        return ::ndk::ScopedAStatus::ok();
+        return ::ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
     }
 
     std::ofstream file(kGestureNodePath);
     file << (in_enabled ? "1" : "0");
     LOG(DEBUG) << "Wrote file " << kGestureNodePath << " fail " << file.fail();
+    if (file.fail()) {
+        return ::ndk::ScopedAStatus::fromExceptionCode(EX_ILLEGAL_STATE);
+    }
     return ::ndk::ScopedAStatus::ok();
 }
 
