@@ -65,7 +65,6 @@ PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
 # ============================================================
 
 PRODUCT_ART_TARGET_INCLUDE_DEBUG_BUILD    := false
-PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER := everything
 USE_DEX2OAT_DEBUG                          := false
 
 PRODUCT_DEXPREOPT_SPEED_APPS += \
