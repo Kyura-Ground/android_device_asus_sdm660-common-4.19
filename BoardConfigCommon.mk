@@ -222,9 +222,6 @@ BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
 
 TARGET_KERNEL_SOURCE     := kernel/asus/sdm660
 TARGET_KERNEL_NO_GCC     := true
-TARGET_KERNEL_BUILD_HOST := beastmachine
-TARGET_KERNEL_BUILD_USER := SonicBSV
-
 
 # ============================================================
 # Lineage Health
