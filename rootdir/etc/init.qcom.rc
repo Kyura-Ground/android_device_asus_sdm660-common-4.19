@@ -279,7 +279,9 @@ on post-fs-data
     mkdir /data/vendor/qtee            0770 system system
     mkdir /data/vendor/camera          0770 camera camera
     mkdir /data/vendor/tombstones      0771 system system
+    mkdir /data/vendor/tombstones/wifi 0771 wifi wifi
     mkdir /data/vendor/tombstones/rfs  0771 system system
+    restorecon_recursive /data/vendor/tombstones/wifi
     mkdir /data/vendor/bluetooth       0770 bluetooth bluetooth
     mkdir /data/vendor/vpp             0770 media media
     mkdir /data/vendor/tui             0700 system drmrpc
