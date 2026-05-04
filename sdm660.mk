@@ -14,6 +14,9 @@ $(call inherit-product, vendor/asus/sdm660-common/sdm660-common-vendor.mk)
 # Non-A/B partition scheme
 $(call inherit-product, $(SRC_TARGET_DIR)/product/non_ab_device.mk)
 
+# Inherit our signing key
+$(call inherit-product-if-exists, vendor/evolution-priv/keys/keys.mk)
+
 # Qualcomm common definitions
 $(call inherit-product, hardware/qcom-caf/common/common.mk)
 
