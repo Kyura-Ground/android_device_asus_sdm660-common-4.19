@@ -54,8 +54,15 @@ ndk::ScopedAStatus Lights::setLightState(int32_t id, const HwLightState& state) 
     const LightType type = static_cast<LightType>(id);
 
     if (type == LightType::BACKLIGHT) {
+        if (!mDevices.hasBacklightDevices()) {
+            return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+        }
         mDevices.setBacklightColor(rgb(state.color));
         return ndk::ScopedAStatus::ok();
+    }
+
+    if (!mDevices.hasNotificationDevices()) {
+        return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
     }
 
     std::lock_guard<std::mutex> lk(mMutex);
