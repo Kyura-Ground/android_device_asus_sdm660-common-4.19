@@ -168,13 +168,6 @@ PRODUCT_COPY_FILES += \
     device/asus/sdm660-common/configs/task_profiles.json:$(TARGET_COPY_OUT_VENDOR)/etc/task_profiles.json
 
 # ============================================================
-# Configstore (отключён — используется AIDL)
-# ============================================================
-
-PRODUCT_PACKAGES += \
-    disable_configstore
-
-# ============================================================
 # DeviceAsWebCam
 # ============================================================
 
