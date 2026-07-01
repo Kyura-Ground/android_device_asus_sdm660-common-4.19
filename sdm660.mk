@@ -666,6 +666,8 @@ PRODUCT_PACKAGES += \
     init.zram.rc \
     ueventd.qcom.rc
 
+# libion
+$(call soong_config_set_bool,libion,legacy_impl,true)
 
 # ============================================================
 # RCS (Rich Communication Services)
