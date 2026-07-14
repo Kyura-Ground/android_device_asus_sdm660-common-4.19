@@ -19,8 +19,9 @@
     <fraction name="config_autoBrightnessAdjustmentMaxGamma">200%</fraction>
     <integer name="config_autoBrightnessShortTermModelTimeout">300000</integer>
 
-    <integer name="config_autoBrightnessBrighteningLightDebounce">3500</integer>
-    <integer name="config_autoBrightnessDarkeningLightDebounce">7000</integer>
+    <!-- Require one second of stable light beyond the hysteresis threshold. -->
+    <integer name="config_autoBrightnessBrighteningLightDebounce">1000</integer>
+    <integer name="config_autoBrightnessDarkeningLightDebounce">1000</integer>
     <integer name="config_autoBrightnessInitialLightSensorRate">-1</integer>
     <integer name="config_autoBrightnessLightSensorRate">250</integer>
     <integer name="config_lightSensorWarmupTime">200</integer>
