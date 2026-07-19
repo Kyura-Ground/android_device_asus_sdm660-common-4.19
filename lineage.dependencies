@@ -1,13 +1,13 @@
 [
   {
-    "remote": "SonicBSV",
+    "remote": "Kyura-Ground",
     "repository": "android_packages_modules_Connectivity",
     "target_path": "packages/modules/Connectivity",
     "revision": "lineage-23.2"
   },
   {
-    "remote": "SonicBSV",
-    "repository": "android_hardware_qcom-caf_sdm660_audio",
+    "remote": "Kyura-Ground",
+    "repository": "android_hardware_qcom_audio",
     "target_path": "hardware/qcom-caf/sdm660/audio",
     "revision": "lineage-23.2-caf-sdm660"
   }
