@@ -25,12 +25,10 @@
 #include <perfmgr/HintManager.h>
 #include <thread>
 
-#include "MetricUploader.h"
 #include "Power.h"
 #include "PowerExt.h"
 #include "utils/ThermalStateListener.h"
 
-using aidl::google::hardware::power::impl::pixel::MetricUploader;
 using aidl::google::hardware::power::impl::pixel::Power;
 using aidl::google::hardware::power::impl::pixel::PowerExt;
 using aidl::google::hardware::power::impl::pixel::ThermalStateListener;
@@ -76,7 +74,6 @@ int main() {
     // Запускаем лопер мгновенно без блокировок и ожидания свойств!
     std::thread initThread([&]() {
         HintManager::GetInstance()->Start();
-        MetricUploader::getInstance()->init();
         ThermalStateListener::getInstance()->init();
     });
     initThread.detach();
