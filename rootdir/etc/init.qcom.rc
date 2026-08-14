@@ -172,12 +172,6 @@ on boot
     setprop net.tcp.2g_init_rwnd 10
     write /proc/sys/net/netfilter/nf_conntrack_tcp_be_liberal 1
     chown system system /sys/module/ccid_bridge/parameters/bulk_msg_timeout
-    chown root system /sys/kernel/dload/emmc_dload
-    chmod 0660 /sys/kernel/dload/emmc_dload
-    chown root system /dev/block/bootdevice/by-name/ramdump
-    chmod 0660 /dev/block/bootdevice/by-name/ramdump
-    chown root system /sys/kernel/dload/dload_mode
-    chmod 0660 /sys/kernel/dload/dload_mode
     mkdir /persist/display 0770 system graphics
     mkdir /mnt/vendor/persist/display 0770 system graphics
     mkdir /mnt/vendor/persist/vpp 0770 media media
@@ -194,7 +188,6 @@ on boot
 
 on post-fs-data
     mkdir /data/vendor/misc 01771 system system
-    mkdir /data/vendor/ssrdump 0770 root system
     mkdir /data/vendor/display 0770 system graphics
     mkdir /data/vendor/lm 0700 root root
     mkdir /data/vendor/media 0770 mediacodec media
@@ -203,9 +196,7 @@ on post-fs-data
     mkdir /data/vendor/camera 0770 camera camera
     mkdir /data/vendor/tombstones 0771 system system
     mkdir /data/vendor/tombstones/rfs 0771 system system
-    mkdir /data/vendor/ramdump 0771 root system
     mkdir /data/vendor/bluetooth 0770 bluetooth bluetooth
-    mkdir /data/vendor/ramdump/bluetooth 0770 bluetooth bluetooth
 
     # Vibrator
     chown system system /sys/class/leds/vibrator/activate
@@ -254,8 +245,6 @@ on post-fs-data
     setprop vold.post_fs_data_done 1
     mkdir /data/vendor/fm 0770 system system
     chmod 0770 /data/vendor/fm
-    mkdir /data/vendor/perfd 0770 root system
-    chmod 2770 /data/vendor/perfd
     rm /data/vendor/perfd/default_values
     mkdir /data/vendor/secure_element 0777 system system
     mkdir /data/vendor/nfc 0770 nfc nfc
@@ -299,51 +288,10 @@ on post-fs-data
     mkdir /data/vendor/vpp 0770 media media
     mkdir /data/vendor/tui 0700 system drmrpc
 
-service vendor.ssr_setup /system/vendor/bin/ssr_setup
-    oneshot
-    disabled
-
-service vendor.ss_ramdump /system/vendor/bin/subsystem_ramdump
-    class main
-    user system
-    group system
-    disabled
-
 # blkio already mounted in on init, this is fallback
 on property:ro.vendor.iocgrp.config=1
     write /dev/blkio/blkio.weight 1000
     write /dev/blkio/background/blkio.weight 200
-
-on property:persist.sys.ssr.enable_debug=*
-    write /sys/module/subsystem_restart/parameters/enable_debug ${persist.sys.ssr.enable_debug}
-
-on property:persist.sys.mba_boot_timeout=*
-    write /sys/module/pil_msa/parameters/pbl_mba_boot_timeout_ms ${persist.sys.mba_boot_timeout}
-
-on property:persist.sys.modem_auth_timeout=*
-    write /sys/module/pil_msa/parameters/modem_auth_timeout_ms ${persist.sys.modem_auth_timeout}
-
-on property:persist.sys.pil_proxy_timeout=*
-    write /sys/module/peripheral_loader/parameters/proxy_timeout_ms ${persist.sys.pil_proxy_timeout}
-
-on property:persist.vendor.ssr.restart_level=*
-    start vendor.ssr_setup
-
-on property:persist.vendor.ssr.enable_ramdumps=1
-    write /sys/module/subsystem_restart/parameters/enable_ramdumps 1
-    write /sys/module/qcom_ramdump/parameters/enable_dump_collection 1
-    mkdir /data/vendor/ramdump_ssr 0770 system system
-    start vendor.ss_ramdump
-
-on property:persist.vendor.ssr.enable_ramdumps=0
-    write /sys/module/subsystem_restart/parameters/enable_ramdumps 0
-    write /sys/module/qcom_ramdump/parameters/enable_dump_collection 0
-
-on property:persist.vendor.sys.rawdump_copy=1
-    write /sys/kernel/dload/emmc_dload 1
-
-on property:persist.vendor.sys.rawdump_copy=0
-    write /sys/kernel/dload/emmc_dload 0
 
 on property:persist.debug.trace=1
     mkdir /data/core 0777 root root

@@ -1,201 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<!--
-╔══════════════════════════════════════════════════════════════════════════╗
-║  crDroid Android 16 — Universal Device Overlay Configuration             ║
-║                                                                          ║
-║  Devices:  ASUS X00TD (Zenfone Max Pro M1, SDM636)                       ║
-║            ASUS X01BD (Zenfone Max Pro M2, SDM660)                       ║
-║                                                                          ║
-║  SoC:     Qualcomm SDM636 (Kryo 260 × 8, Adreno 509)                    ║
-║           Qualcomm SDM660 (Kryo 260 × 8, Adreno 512)                    ║
-║                                                                          ║
-║  RAM variants:  3 GB / 4 GB / 6 GB                                       ║
-║  Storage:       32 GB / 64 GB eMMC                                       ║
-║                                                                          ║
-║  Display: X00TD — 5.99" 2160×1080 IPS LCD, 450 nits, 60 Hz              ║
-║           X01BD — 6.26" 2280×1080 IPS LCD, 450 nits, 60 Hz              ║
-║           Both use similar BOE/Tianma IPS panels with comparable         ║
-║           brightness curves and backlight ranges.                        ║
-║                                                                          ║
-║  Kernel:  4.19.x (PSI-based LMKD, no legacy minfree tuning)             ║
-║  NFC:     NXP PN553 (X00TD) / absent on most X01BD SKUs                 ║
-║  Fingerprint: Goodix CDFinger (rear-mounted, both devices)               ║
-║  Vibrator: ERM motor (both devices)                                      ║
-║  Color:   LiveDisplay via kernel PCC (not AOSP Night Display)            ║
-║  SIM:     Dual nano-SIM (both devices)                                   ║
-║                                                                          ║
-║  MEMORY STRATEGY:                                                        ║
-║    This overlay uses middle-ground values suitable for 3–6 GB.           ║
-║    PSI-based LMKD adapts kill pressure dynamically per actual RAM.       ║
-║    config_customizedMaxCachedProcesses = 32 works well across all        ║
-║    three variants:                                                       ║
-║      3 GB — tight but functional, PSI kills aggressively as needed       ║
-║      4 GB — comfortable, most apps stay cached                           ║
-║      6 GB — plenty of headroom, 32 is a soft floor not a ceiling         ║
-║    extra_free_kbytes = 32 MB prevents direct reclaim stalls on eMMC      ║
-║    regardless of total RAM.                                              ║
-║                                                                          ║
-║  DISPLAY STRATEGY:                                                       ║
-║    Both panels share the same backlight IC range (0–255) and similar     ║
-║    nit output. The auto-brightness curve is calibrated for ~450 nits     ║
-║    peak which matches both devices. Minor panel-to-panel variation       ║
-║    is handled by the user brightness adjustment gamma.                   ║
-║                                                                          ║
-║  NOTIFICATION STRATEGY:                                                  ║
-║    AutoPowerModes disabled — prevents aggressive idle batching           ║
-║    Doze pulse enabled — screen briefly wakes on notification             ║
-║    Interactive mode decoupled from display — CPU stays responsive        ║
-║    Proximity suspend disabled — no lost notifications in pocket          ║
-║                                                                          ║
-║  GPU / GRAPHICS:                                                         ║
-║    Adreno 509 (SDM636) and Adreno 512 (SDM660) have identical           ║
-║    feature sets for overlay purposes — neither supports wide color       ║
-║    gamut, both support HW color transform via PCC.                       ║
-╚══════════════════════════════════════════════════════════════════════════╝
--->
-
 <resources>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 1: DISPLAY AND BRIGHTNESS
-         Both X00TD and X01BD use IPS LCD panels with:
-         - Backlight range: 0–255 (same backlight IC family)
-         - Peak brightness: ~450 nits
-         - Color temperature: ~6500K (uncalibrated)
-         X01BD has a notch but this doesn't affect brightness mapping.
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- =========================================================
+         1. ДИСПЛЕЙ И ЯРКОСТЬ
+         ========================================================= -->
 
-    <!-- Auto-brightness -->
+    <integer name="config_defaultRefreshRate">60</integer>
+    <integer name="config_defaultPeakRefreshRate">60</integer>
+    <bool name="config_supportsSeamlessRefreshRateSwitching">false</bool>
+
     <bool name="config_automatic_brightness_available">true</bool>
     <bool name="config_skipScreenOnBrightnessRamp">false</bool>
     <bool name="config_autoBrightnessResetAmbientLuxAfterWarmUp">true</bool>
     <bool name="config_allowAutoBrightnessWhileDozing">false</bool>
 
-    <!-- Brightness ramp speed -->
     <integer name="config_brightness_ramp_rate_fast">180</integer>
     <integer name="config_brightness_ramp_rate_slow">40</integer>
-
-    <!-- User brightness adjustment range -->
     <fraction name="config_autoBrightnessAdjustmentMaxGamma">200%</fraction>
-
-    <!-- Short-term model timeout -->
     <integer name="config_autoBrightnessShortTermModelTimeout">300000</integer>
 
-    <!-- Light sensor debounce
-         Balanced for both panels — not too twitchy, not too slow -->
-    <integer name="config_autoBrightnessBrighteningLightDebounce">5000</integer>
-    <integer name="config_autoBrightnessDarkeningLightDebounce">10000</integer>
-
-    <!-- Light sensor polling -->
+    <integer name="config_autoBrightnessBrighteningLightDebounce">3500</integer>
+    <integer name="config_autoBrightnessDarkeningLightDebounce">7000</integer>
     <integer name="config_autoBrightnessInitialLightSensorRate">-1</integer>
     <integer name="config_autoBrightnessLightSensorRate">250</integer>
-
-    <!-- Light sensor warmup -->
     <integer name="config_lightSensorWarmupTime">200</integer>
 
-    <!-- Backlight to nits mapping
-         Linear mapping — both devices use similar backlight ICs -->
     <integer-array name="config_screenBrightnessBacklight">
         <item>1</item>
         <item>255</item>
     </integer-array>
 
     <array name="config_screenBrightnessNits">
-        <item>2.0</item>
+        <item>1.2</item>
         <item>450.0</item>
     </array>
 
-    <!-- Auto-brightness lux thresholds
-         Universal curve for IPS FHD+ panels on both devices -->
     <integer-array name="config_autoBrightnessLevels">
-        <item>35</item>
-        <item>70</item>
+        <item>5</item>
+        <item>20</item>
+        <item>50</item>
         <item>120</item>
-        <item>180</item>
-        <item>320</item>
-        <item>500</item>
-        <item>800</item>
-        <item>1300</item>
-        <item>2200</item>
-        <item>3800</item>
-        <item>6000</item>
+        <item>300</item>
+        <item>700</item>
+        <item>1500</item>
+        <item>3500</item>
+        <item>7000</item>
     </integer-array>
 
-    <!-- Target display brightness per lux zone -->
     <array name="config_autoBrightnessDisplayValuesNits">
-        <item>10.0</item>
-        <item>22.0</item>
-        <item>48.0</item>
-        <item>85.0</item>
-        <item>130.0</item>
-        <item>180.0</item>
-        <item>235.0</item>
-        <item>295.0</item>
-        <item>355.0</item>
-        <item>405.0</item>
-        <item>430.0</item>
+        <item>2.0</item>
+        <item>4.0</item>
+        <item>8.0</item>
+        <item>18.0</item>
+        <item>40.0</item>
+        <item>80.0</item>
+        <item>140.0</item>
+        <item>220.0</item>
+        <item>330.0</item>
         <item>450.0</item>
     </array>
 
-    <!-- Idle brightness — slightly dimmer to save power -->
     <integer-array name="config_autoBrightnessLevelsIdle">
-        <item>35</item>
-        <item>70</item>
+        <item>5</item>
+        <item>20</item>
+        <item>50</item>
         <item>120</item>
-        <item>180</item>
-        <item>320</item>
-        <item>500</item>
-        <item>800</item>
-        <item>1300</item>
-        <item>2200</item>
-        <item>3800</item>
-        <item>6000</item>
+        <item>300</item>
+        <item>700</item>
+        <item>1500</item>
+        <item>3500</item>
+        <item>7000</item>
     </integer-array>
 
     <array name="config_autoBrightnessDisplayValuesNitsIdle">
-        <item>7.0</item>
-        <item>17.0</item>
-        <item>40.0</item>
-        <item>74.0</item>
-        <item>117.0</item>
-        <item>165.0</item>
-        <item>220.0</item>
-        <item>282.0</item>
-        <item>342.0</item>
-        <item>395.0</item>
-        <item>425.0</item>
+        <item>1.2</item>
+        <item>3.0</item>
+        <item>6.0</item>
+        <item>15.0</item>
+        <item>32.0</item>
+        <item>70.0</item>
+        <item>125.0</item>
+        <item>205.0</item>
+        <item>315.0</item>
         <item>450.0</item>
     </array>
 
-    <!-- Brightness limits — legacy integer API -->
     <integer name="config_screenBrightnessSettingMinimum">1</integer>
     <integer name="config_screenBrightnessSettingMaximum">255</integer>
     <integer name="config_screenBrightnessSettingDefault">102</integer>
     <integer name="config_screenBrightnessDim">1</integer>
     <integer name="config_screenBrightnessDark">1</integer>
-    <integer name="config_screenBrightnessDoze">1</integer>
+    <integer name="config_screenBrightnessDoze">17</integer>
 
-    <!-- Brightness limits — new float API -->
-    <item name="config_screenBrightnessSettingMinimumFloat"
-          format="float" type="dimen">0.004</item>
-    <item name="config_screenBrightnessSettingMaximumFloat"
-          format="float" type="dimen">1.0</item>
-    <item name="config_screenBrightnessSettingDefaultFloat"
-          format="float" type="dimen">0.4</item>
-    <item name="config_screenBrightnessDimFloat"
-          format="float" type="dimen">0.004</item>
-    <item name="config_screenBrightnessDozeFloat"
-          format="float" type="dimen">0.004</item>
-    <item name="config_screenBrightnessMinimumDimAmountFloat"
-          format="float" type="dimen">0.04</item>
+    <item name="config_screenBrightnessSettingMinimumFloat" format="float" type="dimen">0.004</item>
+    <item name="config_screenBrightnessSettingMaximumFloat" format="float" type="dimen">1.0</item>
+    <item name="config_screenBrightnessSettingDefaultFloat" format="float" type="dimen">0.4</item>
+    <item name="config_screenBrightnessDimFloat" format="float" type="dimen">0.004</item>
+    <item name="config_screenBrightnessDozeFloat" format="float" type="dimen">0.067</item>
+    <item name="config_screenBrightnessMinimumDimAmountFloat" format="float" type="dimen">0.04</item>
 
-    <!-- Ambient light hysteresis -->
     <integer-array name="config_ambientThresholdLevels">
-        <item>35</item>
-        <item>70</item>
-        <item>120</item>
-        <item>500</item>
+        <item>10</item>
+        <item>50</item>
+        <item>200</item>
         <item>1000</item>
     </integer-array>
 
@@ -203,292 +110,92 @@
         <item>200</item>
         <item>150</item>
         <item>100</item>
-        <item>80</item>
-        <item>50</item>
+        <item>60</item>
         <item>30</item>
     </integer-array>
 
     <integer-array name="config_ambientDarkeningThresholds">
-        <item>400</item>
         <item>300</item>
-        <item>200</item>
+        <item>220</item>
         <item>150</item>
         <item>100</item>
         <item>60</item>
     </integer-array>
 
-    <!-- LiveDisplay via kernel PCC — both devices support this -->
     <bool name="config_setColorTransformAccelerated">true</bool>
-    <bool name="config_setColorTransformAcceleratedPerLayer">false</bool>
-
-    <!-- Night Display disabled — LiveDisplay handles color temperature -->
-    <bool name="config_nightDisplayAvailable">false</bool>
-
-    <!-- Refresh rate — both devices are 60 Hz only -->
-    <integer name="config_defaultRefreshRate">60</integer>
-    <integer name="config_defaultPeakRefreshRate">60</integer>
-    <bool name="config_supportsSeamlessRefreshRateSwitching">false</bool>
-
-    <!-- SurfaceFlinger hints -->
-    <bool name="config_sf_limitedAlpha">false</bool>
-    <bool name="config_sf_slowBlur">true</bool>
-
-    <!-- Fading marquee -->
-    <bool name="config_ui_enableFadingMarquee">false</bool>
-
-    <!-- Wide color gamut — not supported by Adreno 509/512 -->
     <bool name="config_enableWcgMode">false</bool>
-
-    <!-- Display transitions -->
-    <bool name="config_displayColorFadeDisabled">false</bool>
-    <bool name="config_skipScreenOffTransition">false</bool>
-
-    <!-- Rounded corners -->
-    <bool name="config_supportsRoundedCornersOnWindows">true</bool>
+    <bool name="config_ui_enableFadingMarquee">false</bool>
+    <bool name="config_animateScreenLights">true</bool>
 
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 2: POWER, SLEEP AND NOTIFICATIONS
+    <!-- =========================================================
+         2. ПИТАНИЕ, СОН И ПРОБУЖДЕНИЕ
+         ========================================================= -->
 
-         NOTIFICATION DELIVERY STRATEGY:
-         The previous config had AutoPowerModes=true which caused
-         aggressive idle batching — notifications arrived only when
-         the user manually woke the device. Additionally,
-         suspendWhenScreenOffDueToProximity=true caused full suspend
-         when proximity sensor was covered (pocket), blocking all
-         push delivery until a hardware IRQ woke the SoC.
+    <bool name="config_lidControlsSleep">false</bool>
+    <bool name="config_unplugTurnsOnScreen">true</bool>
 
-         This version fixes all of these issues:
-         - AutoPowerModes disabled
-         - Doze pulse on notification enabled
-         - CPU interactive mode decoupled from display
-         - Proximity-based suspend disabled
-         ═══════════════════════════════════════════════════════════════ -->
-
-    <!-- AutoPowerModes DISABLED
-         With these enabled, the system enters deep idle aggressively
-         using the motion sensor, batching all sync/push/jobs until
-         the next maintenance window (up to 15+ minutes).
-         Disabling costs ~3-5% battery per day but ensures timely
-         notification delivery. This is the right tradeoff for devices
-         without AOD where users depend on pulse/LED/sound. -->
     <bool name="config_enableAutoPowerModes">false</bool>
     <bool name="config_autoPowerModeUseMotionSensor">false</bool>
     <bool name="config_autoPowerModePrefetchLocation">false</bool>
 
-    <!-- Wake screen when unplugging charger -->
-    <bool name="config_unplugTurnsOnScreen">true</bool>
-
-    <!-- Doze configuration
-         config_dozeAfterScreenOffByDefault = true
-           Enables ambient/pulse state after screen off.
-           When a notification arrives, DozeService can briefly
-           illuminate the screen (pulse) to show the notification.
-
-         config_dozeAlwaysOnDisplayAvailable = false
-         config_dozeAlwaysOnEnabled = false
-           AOD on IPS LCD wastes significant power since the entire
-           backlight must stay on. Disabled on both devices.
-
-         config_dozePulsePickup = true
-         config_dozePickupGestureEnabled = true
-           Lifting the phone triggers a pulse showing notifications.
-           Both devices have accelerometers that support this.
-
-         Result: notifications trigger a brief screen wake (pulse),
-         LED blinks, sound/vibration plays — user sees notification
-         without pressing power button. -->
-    <string name="config_dozeComponent" translatable="false">com.android.systemui/com.android.systemui.doze.DozeService</string>
-    <bool name="config_dozeEnabled">true</bool>
-    <bool name="config_dozeAfterScreenOffByDefault">true</bool>
+    <bool name="config_dozeEnabled">false</bool>
+    <bool name="config_dozeAfterScreenOffByDefault">false</bool>
     <bool name="config_dozeAlwaysOnDisplayAvailable">false</bool>
     <bool name="config_dozeAlwaysOnEnabled">false</bool>
     <bool name="config_displayBlanksAfterDoze">false</bool>
     <bool name="config_displayBrightnessBucketsInDoze">false</bool>
-    <bool name="config_dozePulsePickup">true</bool>
-    <bool name="config_dozePickupGestureEnabled">true</bool>
+    <bool name="config_dozePulsePickup">false</bool>
+    <bool name="config_dozePickupGestureEnabled">false</bool>
 
-    <!-- Dreaming (screensaver) -->
-    <bool name="config_dreamsSupported">true</bool>
-    <bool name="config_dreamsEnabledByDefault">false</bool>
-    <bool name="config_dreamsActivatedOnDockByDefault">true</bool>
-    <bool name="config_dreamsActivatedOnSleepByDefault">false</bool>
-    <bool name="config_dreamsEnabledOnBattery">false</bool>
-    <integer name="config_dreamsBatteryLevelMinimumWhenNotPowered">20</integer>
-    <integer name="config_dreamsBatteryLevelDrainCutoff">5</integer>
-
-    <!-- Power mode decoupling
-         InteractiveMode decoupled from display = true
-         Allows CPU to remain in interactive governor mode when screen
-         is off. Critical for timely push notification processing.
-         On SDM636/660 with schedutil/interactive governor, this means
-         the CPU doesn't drop to powersave at screen-off and can
-         quickly handle incoming GCM/FCM wakeups.
-
-         AutoSuspend remains coupled (false) — the system controls
-         suspend entry, but interactive mode is independent of display. -->
     <bool name="config_powerDecoupleAutoSuspendModeFromDisplay">false</bool>
-    <bool name="config_powerDecoupleInteractiveModeFromDisplay">true</bool>
-
-    <!-- Proximity-based suspend DISABLED
-         Was true — forced full SoC suspend when proximity sensor
-         was covered (phone in pocket/face-down). In full suspend,
-         no push notifications are processed until a hardware IRQ.
-         On X00TD/X01BD the proximity sensor sometimes "sticks" due
-         to poor calibration, causing hours without notifications.
-         With false — screen stays off but CPU can process pushes. -->
+    <bool name="config_powerDecoupleInteractiveModeFromDisplay">false</bool>
     <bool name="config_suspendWhenScreenOffDueToProximity">false</bool>
 
-    <!-- Screen timeouts -->
+    <bool name="config_dreamsSupported">false</bool>
+    <bool name="config_flipToScreenOffEnabled">false</bool>
+
+    <bool name="config_supportDoubleTapWake">true</bool>
+
     <integer name="config_minimumScreenOffTimeout">10000</integer>
     <integer name="config_maximumScreenDimDuration">7000</integer>
     <fraction name="config_maximumScreenDimRatio">20%</fraction>
 
-    <!-- Battery warning levels -->
-    <integer name="config_criticalBatteryWarningLevel">5</integer>
-    <integer name="config_lowBatteryWarningLevel">15</integer>
-    <integer name="config_lowBatteryAutoTriggerDefaultLevel">15</integer>
-    <integer name="config_lowBatteryCloseWarningBump">5</integer>
-    <integer name="config_shutdownBatteryTemperature">680</integer>
-    <bool name="config_shutdownIfNoPower">true</bool>
-
-    <!-- Power button behavior -->
     <integer name="config_longPressOnPowerBehavior">1</integer>
-    <integer name="config_longPressOnPowerDurationMs">500</integer>
-    <integer name="config_shortPressOnPowerBehavior">1</integer>
-    <integer name="config_doublePressOnPowerBehavior">0</integer>
-    <integer name="config_triplePressOnPowerBehavior">0</integer>
+    <integer name="config_keyChordPowerVolumeUp">1</integer>
 
-    <!-- No animations in battery saver -->
-    <bool name="config_allowAnimationsInLowPowerMode">false</bool>
+    <bool name="config_sustainedPerformanceModeSupported">false</bool>
 
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 3: MEMORY MANAGEMENT
+    <!-- =========================================================
+         3. БАТАРЕЯ И ИНДИКАЦИЯ
+         ========================================================= -->
 
-         Universal for 3 GB / 4 GB / 6 GB + eMMC storage.
+    <integer name="config_lowBatteryWarningLevel">15</integer>
+    <integer name="config_criticalBatteryWarningLevel">5</integer>
 
-         PSI-based LMKD (kernel 4.19+):
-           The kernel monitors memory pressure via PSI
-           (/proc/pressure/memory) and makes kill decisions
-           independently of legacy minfree tuning. The overlay
-           only needs to set framework-level parameters.
+    <bool name="config_intrusiveBatteryLed">true</bool>
+    <bool name="config_multiColorBatteryLed">true</bool>
 
-         Scaling strategy:
-           config_customizedMaxCachedProcesses = 32
-             3 GB: tight — PSI will actively kill, 32 is a reasonable
-                   upper bound that prevents thrashing
-             4 GB: comfortable — most apps survive in cache
-             6 GB: generous headroom — 32 is a soft floor,
-                   ActivityManager may keep more if memory allows
-
-           config_extraFreeKbytesAbsolute = 32768 (32 MB)
-             Prevents direct reclaim stalls on eMMC which has
-             3-5× worse random I/O than UFS. Critical for all
-             RAM variants since the storage bottleneck is the same.
-
-           Pinner: ~100 MB of critical framework files pinned
-             3 GB: ~3.3% of RAM — acceptable
-             4 GB: ~2.5% of RAM — comfortable
-             6 GB: ~1.7% of RAM — negligible
-             config_pinnerMaxPinnedMemoryPercentage = 8 caps it
-
-           Task snapshots: 16-bit format, reduced resolution
-             Saves ~30-50% snapshot memory vs 32-bit full-res.
-             Visible quality difference is minimal on FHD+ panels.
-         ═══════════════════════════════════════════════════════════════ -->
-
-    <!-- LMK minfree: not used with PSI-based LMKD
-         -1 = let LMKD handle everything via PSI pressure -->
-    <integer name="config_lowMemoryKillerMinFreeKbytesAbsolute">-1</integer>
-    <integer name="config_lowMemoryKillerMinFreeKbytesAdjust">0</integer>
-
-    <!-- Extra free kbytes: 32 MB to prevent direct reclaim on eMMC
-         This is independent of LMKD — controls /proc/sys/vm/extra_free_kbytes
-         Same value works for 3/4/6 GB because the eMMC bottleneck
-         is constant regardless of RAM amount -->
-    <integer name="config_extraFreeKbytesAbsolute">32768</integer>
-    <integer name="config_extraFreeKbytesAdjust">8192</integer>
-
-    <!-- Task snapshots: save memory across all RAM variants -->
-    <item name="config_highResTaskSnapshotScale" format="float" type="dimen">0.8</item>
-    <item name="config_lowResTaskSnapshotScale" format="float" type="dimen">0.3</item>
-    <bool name="config_use16BitTaskSnapshotPixelFormat">true</bool>
-    <item name="config_resActivitySnapshotScale" format="float" type="dimen">0.5</item>
-    <bool name="config_predictShowStartingSurface">true</bool>
-
-    <!-- Max cached processes: 32
-         See scaling strategy above — works across 3/4/6 GB -->
-    <integer name="config_customizedMaxCachedProcesses">32</integer>
-
-    <!-- Pinner Service: pin critical framework files
-         Total ~100 MB — safe across all RAM variants
-         (capped at 8% of total RAM by config_pinnerMaxPinnedMemoryPercentage) -->
-    <string-array translatable="false" name="config_defaultPinnerServiceFiles">
-        <item>/system/framework/framework.jar</item>
-        <item>/system/framework/services.jar</item>
-        <item>/apex/com.android.art/javalib/core-oj.jar</item>
-        <item>/apex/com.android.art/javalib/core-libart.jar</item>
-    </string-array>
-    <integer name="config_pinnerHomePinBytes">31457280</integer>      <!-- 30 MB -->
-    <integer name="config_pinnerCameraPinBytes">41943040</integer>    <!-- 40 MB -->
-    <integer name="config_pinnerAssistantPinBytes">20971520</integer> <!-- 20 MB -->
-    <integer name="config_pinnerWebviewPinBytes">10485760</integer>   <!-- 10 MB -->
-    <integer name="config_pinnerMaxPinnedMemoryPercentage">8</integer>
-
-    <!-- Recent apps limits -->
-    <integer name="config_minNumVisibleRecentTasks_lowRam">5</integer>
-    <integer name="config_maxNumVisibleRecentTasks_lowRam">6</integer>
-    <integer name="config_minNumVisibleRecentTasks">5</integer>
-    <integer name="config_maxNumVisibleRecentTasks">10</integer>
-
-    <!-- Database: TRUNCATE journal + FULL sync — safe on eMMC
-         Both devices use eMMC storage where MEMORY journal + OFF sync
-         would risk data loss on crash. TRUNCATE + FULL is the safe
-         and performant choice. -->
-    <integer name="db_connection_pool_size">4</integer>
-    <string name="db_default_journal_mode" translatable="false">TRUNCATE</string>
-    <integer name="db_journal_size_limit">524288</integer>
-    <integer name="db_wal_truncate_size">1048576</integer>
-    <string name="db_default_sync_mode" translatable="false">FULL</string>
-    <string name="db_wal_sync_mode" translatable="false">NORMAL</string>
-    <integer name="db_wal_autocheckpoint">100</integer>
-    <integer name="db_default_idle_connection_timeout">30000</integer>
-
-    <!-- Zram writeback: extends effective RAM via swap to eMMC
-         Beneficial across all RAM variants but especially for 3 GB -->
-    <bool name="config_zramWriteback">true</bool>
-
-    <!-- Downloads: conservative for 32/64 GB storage -->
-    <integer name="config_downloadDataDirSize">100</integer>
-    <integer name="config_MaxConcurrentDownloadsAllowed">3</integer>
-    <integer name="config_downloadDataDirLowSpaceThreshold">15</integer>
-
-    <!-- High-perf transitions: disabled
-         SDM636 Adreno 509 and SDM660 Adreno 512 are both mid-range
-         GPUs that struggle with high-perf transition effects -->
-    <bool name="config_deviceSupportsHighPerfTransitions">false</bool>
+    <integer name="config_notificationsBatteryLowARGB">0xFFFF0000</integer>
+    <integer name="config_notificationsBatteryMediumARGB">0xFFFFFF00</integer>
+    <integer name="config_notificationsBatteryFullARGB">0xFF00FF00</integer>
 
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 4: TELEPHONY AND NETWORKING
-         Both devices: Dual nano-SIM, LTE Cat 6/7,
-         Qualcomm WCN3990 (X01BD) / WCN3615+WCN3680 (X00TD) Wi-Fi
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- =========================================================
+         4. ТЕЛЕФОНИЯ И СЕТЬ
+         ========================================================= -->
 
-    <!-- Dual SIM — both devices -->
     <integer name="config_num_physical_slots">2</integer>
     <bool name="config_voice_capable">true</bool>
     <bool name="config_sms_capable">true</bool>
     <bool name="config_mobile_data_capable">true</bool>
     <bool name="config_hotswapCapable">true</bool>
 
-    <!-- Supported radio technologies
-         Both SDM636 and SDM660 support the same radio families -->
+    <bool name="config_cellBroadcastAppLinks">true</bool>
+
     <string name="config_radio_access_family" translatable="false">LTE|WCDMA|GSM</string>
 
-    <!-- IMS / VoLTE / VoWiFi
-         Both devices have IMS-capable modems -->
     <bool name="config_carrier_volte_available">true</bool>
     <bool name="config_device_volte_available">true</bool>
     <bool name="config_device_vt_available">true</bool>
@@ -496,35 +203,31 @@
     <bool name="config_device_wfc_ims_available">true</bool>
     <bool name="config_carrier_volte_tty_supported">true</bool>
 
-    <!-- Call audio -->
-    <bool name="config_speed_up_audio_on_mt_calls">true</bool>
     <bool name="config_switch_phone_on_voice_reg_state_change">false</bool>
-    <bool name="config_use_voip_mode_for_ims">false</bool>
     <bool name="config_voice_data_sms_auto_fallback">true</bool>
     <bool name="config_useVideoPauseWorkaround">true</bool>
 
-    <!-- Network attributes — standard for dual-SIM LTE devices -->
     <string-array translatable="false" name="networkAttributes">
-        <item>"wifi,1,1,1,-1,true"</item>
-        <item>"mobile,0,0,0,-1,true"</item>
-        <item>"mobile_mms,2,0,4,60000,true"</item>
-        <item>"mobile_supl,3,0,2,60000,true"</item>
-        <item>"mobile_dun,4,0,2,60000,true"</item>
-        <item>"mobile_hipri,5,0,3,60000,true"</item>
-        <item>"mobile_fota,10,0,2,60000,true"</item>
-        <item>"mobile_ims,11,0,2,60000,true"</item>
-        <item>"mobile_cbs,12,0,2,60000,true"</item>
-        <item>"wifi_p2p,13,1,0,-1,true"</item>
-        <item>"bluetooth,7,7,2,-1,true"</item>
-        <item>"mobile_ia,14,0,2,-1,true"</item>
-        <item>"mobile_emergency,15,0,5,-1,true"</item>
-        <item>"ethernet,9,9,9,-1,true"</item>
+        <item>wifi,1,1,1,-1,true</item>
+        <item>mobile,0,0,0,-1,true</item>
+        <item>mobile_mms,2,0,4,60000,true</item>
+        <item>mobile_supl,3,0,2,60000,true</item>
+        <item>mobile_dun,4,0,2,60000,true</item>
+        <item>mobile_hipri,5,0,3,60000,true</item>
+        <item>mobile_fota,10,0,2,60000,true</item>
+        <item>mobile_ims,11,0,2,60000,true</item>
+        <item>mobile_cbs,12,0,2,60000,true</item>
+        <item>wifi_p2p,13,1,0,-1,true</item>
+        <item>bluetooth,7,7,2,-1,true</item>
+        <item>mobile_ia,14,0,2,-1,true</item>
+        <item>mobile_emergency,15,0,5,-1,true</item>
+        <item>ethernet,9,9,9,-1,true</item>
     </string-array>
 
     <string-array translatable="false" name="radioAttributes">
-        <item>"1,1"</item>
-        <item>"0,1"</item>
-        <item>"7,1"</item>
+        <item>1,1</item>
+        <item>0,1</item>
+        <item>7,1</item>
     </string-array>
 
     <integer-array translatable="false" name="config_protectedNetworks">
@@ -535,10 +238,9 @@
         <item>15</item>
     </integer-array>
 
-    <!-- TCP buffers — identical modem capabilities on both SoCs -->
     <string-array name="config_mobile_tcp_buffers">
-        <item>lte:524288,1048576,2097152,262144,524288,1048576</item>
-        <item>lte_ca:524288,1048576,2097152,262144,524288,1048576</item>
+        <item>lte:524288,1048576,3145728,262144,524288,1048576</item>
+        <item>lte_ca:524288,1048576,4194304,262144,524288,1048576</item>
         <item>hspap:131072,262144,2097152,32768,131072,262144</item>
         <item>hspa:131072,262144,2097152,32768,131072,262144</item>
         <item>hsdpa:131072,262144,2097152,32768,131072,262144</item>
@@ -550,19 +252,12 @@
     </string-array>
 
     <integer name="config_mobile_mtu">1500</integer>
-
-    <!-- Network behavior -->
-    <integer translatable="false" name="config_networkAvoidBadWifi">1</integer>
+    <integer translatable="false" name="config_networkAvoidBadWifi">0</integer>
     <integer translatable="false" name="config_networkNotifySwitchType">0</integer>
-    <string-array translatable="false" name="config_networkSupportedKeepaliveCount">
-        <item>0,1</item>
-        <item>1,3</item>
-    </string-array>
 
-    <!-- Wi-Fi Display — both SoCs support Miracast -->
     <bool name="config_enableWifiDisplay">true</bool>
+    <bool name="config_wifiDisplaySupportsProtectedBuffers">false</bool>
 
-    <!-- LTE signal thresholds -->
     <integer-array translatable="false" name="config_lteDbmThresholds">
         <item>-140</item>
         <item>-128</item>
@@ -572,9 +267,6 @@
         <item>-44</item>
     </integer-array>
 
-    <integer name="config_showOperatorNameDefault">1</integer>
-
-    <!-- Tethering DHCP ranges -->
     <string-array translatable="false" name="config_tether_dhcp_range">
         <item>192.168.42.2</item>
         <item>192.168.42.254</item>
@@ -584,224 +276,80 @@
         <item>192.168.44.254</item>
         <item>192.168.45.2</item>
         <item>192.168.45.254</item>
+        <item>192.168.46.2</item>
+        <item>192.168.46.254</item>
+        <item>192.168.47.2</item>
+        <item>192.168.47.254</item>
+        <item>192.168.48.2</item>
+        <item>192.168.48.254</item>
+        <item>192.168.49.2</item>
+        <item>192.168.49.254</item>
+        <item>192.168.50.2</item>
+        <item>192.168.50.254</item>
+        <item>192.168.51.2</item>
+        <item>192.168.51.254</item>
     </string-array>
 
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 5: GPS AND LOCATION
-         Both devices use Qualcomm GNSS with the same HAL
-         ═══════════════════════════════════════════════════════════════ -->
-
-    <bool name="config_enableNetworkLocationOverlay">true</bool>
-    <bool name="config_enableFusedLocationOverlay">true</bool>
-    <string-array name="config_locationProviderPackageNames" translatable="false">
-        <item>com.google.android.gms</item>
-        <item>com.android.location.fused</item>
-    </string-array>
+    <integer name="config_sms_authorization_timeout_ms">15000</integer>
+    <bool name="config_sms_authorization_enabled">true</bool>
+    <bool translatable="false" name="config_sms_decode_gsm_8bit_data">true</bool>
 
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 6: FINGERPRINT
-         Both devices: Goodix CDFinger, rear-mounted capacitive
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- =========================================================
+         5. СКАНЕР ОТПЕЧАТКОВ
+         ========================================================= -->
 
     <integer name="config_fingerprintMaxTemplatesPerUser">5</integer>
     <bool name="config_fingerprintSupportsGestures">false</bool>
     <bool name="config_is_powerbutton_fps" translatable="false">false</bool>
     <bool name="config_performantAuthDefault">true</bool>
+    <bool name="config_supportsUdfps">false</bool>
 
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 7: UI, NAVIGATION AND GESTURES
-         X00TD: no notch, 18:9 display
-         X01BD: notch display, 19:9
-         Navigation and gesture settings are identical —
-         notch handling is managed by DisplayCutout config
-         which is device-tree specific, not in this overlay.
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- =========================================================
+         6. ЗВУК И УВЕДОМЛЕНИЯ
+         ========================================================= -->
 
-    <!-- Animation durations -->
-    <integer name="config_shortAnimTime">200</integer>
-    <integer name="config_mediumAnimTime">400</integer>
-    <integer name="config_longAnimTime">500</integer>
-    <integer name="config_activityShortDur">150</integer>
-    <integer name="config_activityDefaultDur">220</integer>
-
-    <!-- Navigation bar -->
-    <bool name="config_showNavigationBar">true</bool>
-    <bool name="config_navBarCanMove">true</bool>
-    <bool name="config_navBarNeedsScrim">true</bool>
-    <bool name="config_navBarTapThrough">false</bool>
-    <bool name="config_imeDrawsImeNavBar">false</bool>
-    <bool name="config_navBarAlwaysShowOnSideEdgeGesture">true</bool>
-    <bool name="config_hideNavBarForKeyboard">false</bool>
-    <bool name="config_allowSeamlessRotationDespiteNavBarMoving">true</bool>
-    <bool name="config_showGesturalNavigationHints">true</bool>
-
-    <!-- Default navigation mode: gestures (mode 2) -->
-    <integer name="config_navBarInteractionMode">2</integer>
-    <integer name="config_navBarOpacityMode">0</integer>
-
-    <!-- Back gesture inset zone -->
-    <dimen name="config_backGestureInset">18dp</dimen>
-    <array name="config_backGestureInsetScales">
-        <item>0.75</item>
-        <item>1.00</item>
-        <item>1.33</item>
-    </array>
-
-    <!-- Status bar -->
-    <bool name="config_forceWindowDrawsStatusBarBackground">true</bool>
-
-    <!-- Double tap to wake — both devices support this -->
-    <bool name="config_supportDoubleTapWake">true</bool>
-
-    <!-- Screen rotation -->
-    <bool name="config_allowAllRotations">false</bool>
-    <bool name="config_supportAutoRotation">true</bool>
-
-    <!-- No hardware menu button on either device -->
-    <integer name="config_overrideHasPermanentMenuKey">2</integer>
-
-    <!-- Touch mode -->
-    <bool name="config_defaultInTouchMode">true</bool>
-
-    <!-- Multi-window -->
-    <bool name="config_supportsMultiWindow">true</bool>
-    <bool name="config_supportsSplitScreenMultiWindow">true</bool>
-    <bool name="config_supportsBubble">true</bool>
-
-    <!-- Lock screen -->
-    <bool name="config_enableLockScreenRotation">false</bool>
-    <integer name="config_doublelineClockDefault">1</integer>
-
-    <!-- Quick settings and screenshots -->
-    <bool name="config_quickSettingsSupported">true</bool>
-    <bool name="config_enableScreenshotChord">true</bool>
-
-    <!-- Widgets and wallpapers -->
-    <bool name="config_enableAppWidgetService">true</bool>
-    <bool name="config_enableWallpaperService">true</bool>
-
-    <!-- Round icons -->
-    <bool name="config_useRoundIcon">true</bool>
-
-    <!-- Dialog styling -->
-    <dimen name="config_prefDialogWidth">320dp</dimen>
-    <dimen name="config_dialogCornerRadius">28dp</dimen>
-    <dimen name="config_buttonCornerRadius">4dp</dimen>
-
-    <!-- Motion prediction disabled for compatibility -->
-    <bool name="config_enableMotionPrediction">false</bool>
-
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 8: AUDIO, LED AND VIBRATION
-         Both devices: single bottom-firing speaker, 3.5mm jack,
-         ERM vibration motor, RGB notification LED
-         ═══════════════════════════════════════════════════════════════ -->
-
-    <!-- Audio -->
     <bool name="config_useDevInputEventForAudioJack">true</bool>
     <bool name="config_supportAudioSourceUnprocessed">false</bool>
     <bool name="config_camera_sound_forced">false</bool>
-    <bool name="config_sendAudioBecomingNoisy">true</bool>
-    <bool name="config_useVolumeKeySounds">true</bool>
-    <integer name="config_soundEffectVolumeDb">-6</integer>
-    <integer name="config_lockSoundVolumeDb">-6</integer>
-    <bool name="config_supportMicNearUltrasound">true</bool>
-    <bool name="config_supportSpeakerNearUltrasound">false</bool>
-    <integer name="config_audio_notif_vol_steps">7</integer>
-    <integer name="config_audio_notif_vol_default">5</integer>
-    <integer name="config_audio_ring_vol_steps">7</integer>
-    <integer name="config_audio_ring_vol_default">5</integer>
-    <bool name="config_safe_media_volume_enabled">true</bool>
-    <integer name="config_safe_media_volume_index">10</integer>
+    <bool name="config_speed_up_audio_on_mt_calls">true</bool>
+    <bool name="config_alias_ring_notif_stream_types">false</bool>
 
-    <!-- Notification LED — both devices have RGB LED -->
-    <bool name="config_useAttentionLight">true</bool>
+    <bool name="config_hearing_aid_profile_supported">true</bool>
+
     <bool name="config_intrusiveNotificationLed">true</bool>
-    <bool name="config_notificationBadging">true</bool>
     <color name="config_defaultNotificationColor">#FF00FF00</color>
-    <integer name="config_defaultNotificationLedOn">1000</integer>
-    <integer name="config_defaultNotificationLedOff">5000</integer>
 
-    <!-- Battery LED — both devices -->
-    <integer name="config_notificationsBatteryLowARGB">0xFFFF0000</integer>
-    <integer name="config_notificationsBatteryMediumARGB">0xFFFFFF00</integer>
-    <integer name="config_notificationsBatteryFullARGB">0xFF00FF00</integer>
-    <integer name="config_notificationsBatteryReallyFullARGB">0xFF00FF00</integer>
-    <integer name="config_notificationsBatteryLedOn">125</integer>
-    <integer name="config_notificationsBatteryLedOff">2875</integer>
-
-    <!-- Haptic text handle disabled — ERM motors on both devices
-         produce annoying buzz rather than subtle haptic feedback -->
     <bool name="config_enableHapticTextHandle">false</bool>
 
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         SECTION 9: MISCELLANEOUS
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- =========================================================
+         7. ИНТЕРФЕЙС И НАВИГАЦИЯ
+         ========================================================= -->
 
-    <!-- USB -->
-    <bool name="config_usbChargingMessage">true</bool>
-    <bool name="config_batterySdCardAccessibility">false</bool>
-    <bool name="config_enable_puk_unlock_screen">true</bool>
+    <bool name="config_showNavigationBar">true</bool>
+    <integer name="config_overrideHasPermanentMenuKey">2</integer>
+    <integer name="config_navBarInteractionMode">0</integer>
 
-    <!-- Gestures -->
-    <bool name="config_emergencyGestureEnabled">true</bool>
-    <bool name="config_cameraDoubleTapPowerGestureEnabled">true</bool>
-    <bool name="config_volumeHushGestureEnabled">true</bool>
+    <bool name="config_freeformWindowManagement">false</bool>
 
-    <!-- Battery percentage -->
-    <bool name="config_battery_percentage_setting_available">true</bool>
 
-    <!-- Cell Broadcast -->
-    <bool name="config_cellBroadcastAppLinks">true</bool>
+    <!-- =========================================================
+         8. ПАМЯТЬ И ПРОИЗВОДИТЕЛЬНОСТЬ
+         ========================================================= -->
 
-    <!-- Dialog behavior -->
-    <bool name="config_closeDialogWhenTouchOutside">true</bool>
+    <bool name="config_use16BitTaskSnapshotPixelFormat">true</bool>
+    <bool name="config_pinnerHomeApp">false</bool>
 
-    <!-- Flip to screen off — both devices have proximity sensor -->
-    <bool name="config_flipToScreenOffEnabled">true</bool>
 
-    <!-- NTP servers -->
-    <string-array translatable="false" name="config_ntpServers">
-        <item>time.android.com</item>
-        <item>2.android.pool.ntp.org</item>
-    </string-array>
-    <integer name="config_ntpTimeout">5000</integer>
-    <integer name="config_ntpPollingInterval">64800000</integer>
+    <!-- =========================================================
+         9. ПОЛЬЗОВАТЕЛИ И РАЗНОЕ
+         ========================================================= -->
 
-    <!-- Sustained performance: not supported on SDM636/660 -->
-    <bool name="config_sustainedPerformanceModeSupported">false</bool>
+    <integer name="config_multiuserMaximumUsers">4</integer>
+    <bool name="config_enableMultiUserUI">true</bool>
 
-    <!-- Virtual Device Manager not needed -->
-    <bool name="config_enableVirtualDeviceManager">false</bool>
-
-    <!-- AI proximity service not available -->
-    <bool name="config_enableProximityService">false</bool>
-
-    <!-- Wallpaper frame rate: power-saving profile -->
-    <integer name="config_wallpaperFrameRateCompatibility">102</integer>
-
-    <!-- SMS -->
-    <bool name="config_sms_utf8_support">false</bool>
-
-    <!-- Autofill -->
     <string name="config_defaultAutofillService" translatable="false">com.google.android.gms/.autofill.service.AutofillService</string>
-
-    <!-- Global power menu actions -->
-    <string-array translatable="false" name="config_globalActionsList">
-        <item>emergency</item>
-        <item>lockdown</item>
-        <item>power</item>
-        <item>restart</item>
-        <item>logout</item>
-        <item>screenshot</item>
-    </string-array>
-
-    <!-- Keyguard draw timeout -->
-    <integer name="config_keyguardDrawnTimeout">1000</integer>
 
 </resources>

@@ -242,15 +242,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.surface_flinger.use_color_management=false \
     ro.surface_flinger.protected_contents=true
 
-
-# ============================================================
-# Doze (режим сна экрана)
-# ============================================================
-
-PRODUCT_PACKAGES += \
-    DeviceDoze
-
-
 # ============================================================
 # DRM
 # ============================================================
@@ -261,7 +252,6 @@ PRODUCT_PACKAGES += \
     libcrypto \
     libhidlmemory.vendor:64 \
     libunwindstack.vendor
-
 
 # ============================================================
 # Отпечаток пальца

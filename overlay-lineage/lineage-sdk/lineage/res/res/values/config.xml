@@ -30,24 +30,6 @@
          ╚══════════════════════════════════════════════════════════╝ -->
 
     <bool name="config_enableLiveDisplay">true</bool>
-    
-    <!-- Температуры -->
-    <integer name="config_dayColorTemperature">6500</integer>
-    <integer name="config_nightColorTemperature">4800</integer>
-    <integer name="config_minColorTemperature">1000</integer>
-    <integer name="config_maxColorTemperature">10000</integer>
-    
-    <!-- Outdoor mode -->
-    <integer name="config_outdoorAmbientLux">12000</integer>
-    <integer name="config_outdoorAmbientLuxHysteresis">1500</integer>
-    
-    <!-- Улучшения дисплея -->
-    <bool name="config_defaultAutoContrast">true</bool>
-    <bool name="config_defaultAutoOutdoorMode">true</bool>
-    <bool name="config_defaultColorEnhancement">true</bool>
-    <bool name="config_defaultCABC">true</bool>
-    <bool name="config_defaultAntiFlicker">false</bool>
-
 
     <!-- ╔══════════════════════════════════════════════════════════╗
          ║  LED УВЕДОМЛЕНИЙ                                         ║
@@ -132,23 +114,6 @@
         <item>restart_bootloader</item>
         <item>restart_systemui</item>
     </string-array>
-
-
-    <!-- ╔══════════════════════════════════════════════════════════╗
-         ║  ЗАРЯДКА                                                 ║
-         ╚══════════════════════════════════════════════════════════╝ -->
-
-    <!-- Charging Control (PM660 поддерживает) -->
-    <bool name="config_chargingControlEnabled">true</bool>
-    <integer name="config_defaultChargingControlMode">1</integer>
-    <integer name="config_defaultChargingControlLimit">95</integer>
-    <integer name="config_defaultChargingControlStartTime">79200</integer>
-    <integer name="config_defaultChargingControlTargetTime">21600</integer>
-    <integer name="config_chargingControlTimeMargin">30</integer>
-    <integer name="config_chargingControlBatteryRechargeMargin">5</integer>
-
-    <!-- Беспроводная зарядка (нет) -->
-    <bool name="config_deviceSupportsWirelessCharging">false</bool>
 
 
     <!-- ╔══════════════════════════════════════════════════════════╗
