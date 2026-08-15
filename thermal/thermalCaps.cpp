@@ -13,9 +13,11 @@ ThermalCapsController::ThermalCapsController() {}
 bool ThermalCapsController::readFile(const std::string& path, std::string* out) {
     std::ifstream f(path);
     if (!f.is_open()) return false;
+
     std::stringstream ss;
     ss << f.rdbuf();
     *out = ss.str();
+
     while (!out->empty() &&
            (out->back() == '\n' || out->back() == '\r' ||
             out->back() == ' '  || out->back() == '\t')) {
@@ -38,10 +40,12 @@ bool ThermalCapsController::readInt64(const std::string& path, int64_t* out) {
     std::string s;
     if (!readFile(path, &s)) return false;
     if (s.empty()) return false;
+
     char* end = nullptr;
     errno = 0;
     long long v = std::strtoll(s.c_str(), &end, 10);
     if (errno != 0 || end == s.c_str()) return false;
+
     *out = static_cast<int64_t>(v);
     return true;
 }
@@ -56,156 +60,220 @@ std::vector<int64_t> ThermalCapsController::parseIntList(const std::string& s) {
     return vals;
 }
 
-int64_t ThermalCapsController::clampToAvail(int64_t target, const std::vector<int64_t>& avail) {
+void ThermalCapsController::sortUnique(std::vector<int64_t>* vals) {
+    std::sort(vals->begin(), vals->end());
+    vals->erase(std::unique(vals->begin(), vals->end()), vals->end());
+}
+
+int64_t ThermalCapsController::clampToAvail(int64_t target,
+                                            const std::vector<int64_t>& avail) {
     if (avail.empty()) return target;
+
     int64_t best = 0;
     for (auto f : avail) {
         if (f <= target && f >= best) best = f;
     }
+
     if (best == 0) {
-        // All freqs are above target, pick smallest
         best = *std::min_element(avail.begin(), avail.end());
     }
+
     return best;
+}
+
+int64_t ThermalCapsController::pickStepDown(const std::vector<int64_t>& avail, size_t steps) {
+    if (avail.empty()) return 0;
+    if (steps >= avail.size()) return avail.front();
+    return avail[avail.size() - 1 - steps];
+}
+
+std::vector<int64_t> ThermalCapsController::buildCpuFallbackTable(int policy, int64_t hwMax) {
+    // Fallback only if scaling_available_frequencies is unavailable.
+    if (policy == 0) {
+        // little cluster
+        if (hwMax >= 1843200) {
+            return {633600, 902400, 1113600, 1401600, 1536000, 1612800, 1747200, 1843200};
+        }
+        return {633600, 902400, 1113600, 1401600, 1536000, 1612800};
+    } else {
+        // big cluster
+        if (hwMax >= 2208000) {
+            return {1113600, 1401600, 1747200, 1804800, 1958400, 2150400, 2208000};
+        }
+        if (hwMax >= 1958400) {
+            return {1113600, 1401600, 1747200, 1804800, 1958400};
+        }
+        return {1113600, 1401600, 1747200, 1804800};
+    }
 }
 
 void ThermalCapsController::loadOnceLocked() {
     if (mLoaded) return;
     mLoaded = true;
 
-    // CPU hw max
     int64_t v = 0;
     if (readInt64(CPU0_INFO_MAX, &v)) mCpu0HwMax = v;
     if (readInt64(CPU4_INFO_MAX, &v)) mCpu4HwMax = v;
 
-    // GPU available frequencies
     std::string s;
+
+    // CPU available freqs
+    if (readFile(CPU0_AVAIL, &s)) {
+        mCpu0Avail = parseIntList(s);
+        sortUnique(&mCpu0Avail);
+    }
+    if (readFile(CPU4_AVAIL, &s)) {
+        mCpu4Avail = parseIntList(s);
+        sortUnique(&mCpu4Avail);
+    }
+
+    // Filter out frequencies above real hw max
+    if (mCpu0HwMax > 0 && !mCpu0Avail.empty()) {
+        mCpu0Avail.erase(
+                std::remove_if(mCpu0Avail.begin(), mCpu0Avail.end(),
+                               [&](int64_t f) { return f > mCpu0HwMax; }),
+                mCpu0Avail.end());
+    }
+    if (mCpu4HwMax > 0 && !mCpu4Avail.empty()) {
+        mCpu4Avail.erase(
+                std::remove_if(mCpu4Avail.begin(), mCpu4Avail.end(),
+                               [&](int64_t f) { return f > mCpu4HwMax; }),
+                mCpu4Avail.end());
+    }
+
+    // Fallback if kernel does not expose scaling_available_frequencies
+    if (mCpu0Avail.empty()) mCpu0Avail = buildCpuFallbackTable(0, mCpu0HwMax);
+    if (mCpu4Avail.empty()) mCpu4Avail = buildCpuFallbackTable(4, mCpu4HwMax);
+
+    if (mCpu0HwMax <= 0 && !mCpu0Avail.empty()) mCpu0HwMax = mCpu0Avail.back();
+    if (mCpu4HwMax <= 0 && !mCpu4Avail.empty()) mCpu4HwMax = mCpu4Avail.back();
+
+    // GPU available frequencies
     if (readFile(GPU_AVAIL, &s)) {
         mGpuAvail = parseIntList(s);
-        std::sort(mGpuAvail.begin(), mGpuAvail.end());
+        sortUnique(&mGpuAvail);
     }
 
     // GPU BW available frequencies
     if (readFile(GPUBW_AVAIL, &s)) {
         mGpuBwAvail = parseIntList(s);
-        std::sort(mGpuBwAvail.begin(), mGpuBwAvail.end());
+        sortUnique(&mGpuBwAvail);
     }
 
     // DDR BW available frequencies
     if (readFile(DDR_AVAIL, &s)) {
         mDdrAvail = parseIntList(s);
-        std::sort(mDdrAvail.begin(), mDdrAvail.end());
+        sortUnique(&mDdrAvail);
     }
 
     LOG(INFO) << "ThermalCaps: loaded"
               << " cpu0_hwmax=" << mCpu0HwMax
               << " cpu4_hwmax=" << mCpu4HwMax
+              << " cpu0_avail=" << mCpu0Avail.size()
+              << " cpu4_avail=" << mCpu4Avail.size()
               << " gpu_avail=" << mGpuAvail.size()
               << " gpubw_avail=" << mGpuBwAvail.size()
               << " ddr_avail=" << mDdrAvail.size();
 }
 
 void ThermalCapsController::applyLevelLocked(int level) {
-    // ═══════════════════════════════════════════════════════════════
-    // Helper: pick frequency at given fraction of max
-    // ═══════════════════════════════════════════════════════════════
-    auto pickFreq = [](const std::vector<int64_t>& avail, double frac) -> int64_t {
-        if (avail.empty()) return 0;
-        int64_t maxf = avail.back(); // sorted ascending
-        int64_t target = static_cast<int64_t>(maxf * frac);
-        return clampToAvail(target, avail);
-    };
-
     auto getMax = [](const std::vector<int64_t>& avail) -> int64_t {
         if (avail.empty()) return 0;
         return avail.back();
     };
 
-    // ═══════════════════════════════════════════════════════════════
-    // CPU caps table (kHz)
-    // ═══════════════════════════════════════════════════════════════
+    auto pickFrac = [](const std::vector<int64_t>& avail, double frac) -> int64_t {
+        if (avail.empty()) return 0;
+        int64_t maxf = avail.back();
+        int64_t target = static_cast<int64_t>(maxf * frac);
+        return ThermalCapsController::clampToAvail(target, avail);
+    };
+
     int64_t cpu0max = mCpu0HwMax;
     int64_t cpu4max = mCpu4HwMax;
 
-    // ═══════════════════════════════════════════════════════════════
-    // GPU / GPU BW / DDR BW fractions per level
-    // ═══════════════════════════════════════════════════════════════
+    size_t littleStepsDown = 0;
+    size_t bigStepsDown = 0;
+
     double gpuFrac   = 1.0;
     double gpuBwFrac = 1.0;
     double ddrFrac   = 1.0;
 
     switch (level) {
         case 0:
-            // No throttling — full performance
+            // full performance
             break;
 
         case 1:
-            // Mild throttling
-            cpu0max  = 1401600;
-            cpu4max  = 1804800;
-            gpuFrac  = 0.85;
-            gpuBwFrac = 0.85;
-            ddrFrac  = 0.80;
+            // mild
+            littleStepsDown = 1;
+            bigStepsDown = 1;
+            gpuFrac = 0.90;
+            gpuBwFrac = 0.90;
+            ddrFrac = 0.90;
             break;
 
         case 2:
-            // Medium throttling
-            cpu0max  = 1113600;
-            cpu4max  = 1401600;
-            gpuFrac  = 0.70;
-            gpuBwFrac = 0.70;
-            ddrFrac  = 0.65;
+            // medium
+            littleStepsDown = 2;
+            bigStepsDown = 2;
+            gpuFrac = 0.75;
+            gpuBwFrac = 0.75;
+            ddrFrac = 0.75;
             break;
 
         case 3:
-            // Strong throttling
-            cpu0max  = 998400;
-            cpu4max  = 1113600;
-            gpuFrac  = 0.55;
-            gpuBwFrac = 0.55;
-            ddrFrac  = 0.50;
+            // strong
+            littleStepsDown = 3;
+            bigStepsDown = 3;
+            gpuFrac = 0.60;
+            gpuBwFrac = 0.60;
+            ddrFrac = 0.60;
             break;
 
-        default: // level >= 4
-            // Emergency throttling
-            cpu0max  = 806400;
-            cpu4max  = 902400;
-            gpuFrac  = 0.40;
-            gpuBwFrac = 0.40;
-            ddrFrac  = 0.40;
+        default:
+            // emergency
+            littleStepsDown = 4;
+            bigStepsDown = 5;
+            gpuFrac = 0.45;
+            gpuBwFrac = 0.45;
+            ddrFrac = 0.45;
             break;
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    if (level == 0) {
+        cpu0max = getMax(mCpu0Avail);
+        cpu4max = getMax(mCpu4Avail);
+    } else {
+        cpu0max = pickStepDown(mCpu0Avail, littleStepsDown);
+        cpu4max = pickStepDown(mCpu4Avail, bigStepsDown);
+    }
+
+    if (cpu0max <= 0) cpu0max = mCpu0HwMax;
+    if (cpu4max <= 0) cpu4max = mCpu4HwMax;
+
+    if (mCpu0HwMax > 0) cpu0max = std::min(cpu0max, mCpu0HwMax);
+    if (mCpu4HwMax > 0) cpu4max = std::min(cpu4max, mCpu4HwMax);
+
     // Apply CPU caps
-    // ═══════════════════════════════════════════════════════════════
     writeFile(CPU0_MAX, std::to_string(cpu0max));
     writeFile(CPU4_MAX, std::to_string(cpu4max));
 
-    // ═══════════════════════════════════════════════════════════════
-    // Apply GPU core cap
-    // ═══════════════════════════════════════════════════════════════
+    // Apply GPU cap
     if (!mGpuAvail.empty()) {
-        int64_t gpuMax = (level == 0) ? getMax(mGpuAvail)
-                                      : pickFreq(mGpuAvail, gpuFrac);
+        int64_t gpuMax = (level == 0) ? getMax(mGpuAvail) : pickFrac(mGpuAvail, gpuFrac);
         if (gpuMax > 0) writeFile(GPU_MAX, std::to_string(gpuMax));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Apply GPU bandwidth cap
-    // ═══════════════════════════════════════════════════════════════
+    // Apply GPU BW cap
     if (!mGpuBwAvail.empty()) {
-        int64_t gpuBwMax = (level == 0) ? getMax(mGpuBwAvail)
-                                        : pickFreq(mGpuBwAvail, gpuBwFrac);
+        int64_t gpuBwMax = (level == 0) ? getMax(mGpuBwAvail) : pickFrac(mGpuBwAvail, gpuBwFrac);
         if (gpuBwMax > 0) writeFile(GPUBW_MAX, std::to_string(gpuBwMax));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Apply DDR bandwidth cap
-    // ═══════════════════════════════════════════════════════════════
+    // Apply DDR BW cap
     if (!mDdrAvail.empty()) {
-        int64_t ddrMax = (level == 0) ? getMax(mDdrAvail)
-                                      : pickFreq(mDdrAvail, ddrFrac);
+        int64_t ddrMax = (level == 0) ? getMax(mDdrAvail) : pickFrac(mDdrAvail, ddrFrac);
         if (ddrMax > 0) writeFile(DDR_MAX, std::to_string(ddrMax));
     }
 
@@ -213,6 +281,7 @@ void ThermalCapsController::applyLevelLocked(int level) {
               << " cpu0=" << cpu0max
               << " cpu4=" << cpu4max
               << " gpuFrac=" << gpuFrac
+              << " gpuBwFrac=" << gpuBwFrac
               << " ddrFrac=" << ddrFrac;
 }
 
@@ -220,18 +289,13 @@ void ThermalCapsController::update(int64_t t) {
     std::lock_guard<std::mutex> lk(mLock);
     loadOnceLocked();
 
-    // ═══════════════════════════════════════════════════════════════
-    // Determine level based on temperature
-    // ═══════════════════════════════════════════════════════════════
     int level = 0;
     if (t >= T3)      level = 4;
     else if (t >= T2) level = 3;
     else if (t >= T1) level = 2;
     else if (t >= T0) level = 1;
 
-    // ═══════════════════════════════════════════════════════════════
-    // Hysteresis for downshift (prevent oscillation)
-    // ═══════════════════════════════════════════════════════════════
+    // hysteresis on cooldown
     if (mLastLevel >= 0 && level < mLastLevel) {
         int64_t cool = 0;
         switch (mLastLevel) {
@@ -242,13 +306,10 @@ void ThermalCapsController::update(int64_t t) {
             default: break;
         }
         if (t > cool) {
-            level = mLastLevel; // Stay at current level
+            level = mLastLevel;
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Apply caps if level changed
-    // ═══════════════════════════════════════════════════════════════
     if (level != mLastLevel) {
         applyLevelLocked(level);
         mLastLevel = level;
