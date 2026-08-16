@@ -306,7 +306,6 @@ vendor/bin/hw/android.hardware.drm@1.3-service.widevine|2158f47423c723a9da29bb81
 vendor/bin/hw/android.hardware.gatekeeper@1.0-service-qti|c16e642ab6018cfc5d9ed49e33e0781c0b59b693
 vendor/bin/hw/android.hardware.keymaster@3.0-service-qti|7ac96fb43095a95cadf80d6df7c39f5f2d092268
 vendor/bin/hw/qcrild|7aee1fd612bddd26b11816370a9d766fc3c4053c
-vendor/bin/hw/vendor.dolby.hardware.dms@2.0-service|8135f86a958b701617f1c33f2b5b54b2958aa0db
 vendor/bin/hw/vendor.qti.hardware.alarm@1.0-service|e0f7f753052162654541516c90983be7f520dbe2
 vendor/bin/hw/vendor.qti.hardware.qteeconnector@1.0-service|8c42eb00b132a52999b96df36f2354c308e5f58f
 vendor/bin/hw/vendor.qti.hardware.tui_comm@1.0-service-qti|e631174faaaa43f5376440828c4ec25ff95eb3d6
@@ -396,7 +395,6 @@ vendor/etc/init/init.time_daemon.rc|b253ca2a498757e14e1d7a051bf504ae09218f51
 vendor/etc/init/netmgrd.rc|5c592bd2cf775462e147d3def97e99abbac4631e
 vendor/etc/init/port-bridge.rc|e52d61a0de5e8a3b21bfbfca929e862422645377
 vendor/etc/init/qcrild.rc|320b644319182f96e494ea30de26cb52b448f592
-vendor/etc/init/vendor.dolby.hardware.dms@2.0-service.rc|29296ebfe89b2697fec573be73cc3757fd97bed6
 vendor/etc/init/vendor.qti.adsprpc-service.rc|54588df8e7da58c66838028d2284986b966c2d37
 vendor/etc/init/vendor.qti.hardware.alarm@1.0-service.rc|a03a9a1c818595b19272ea6ffb466e23a7fc3b05
 vendor/etc/init/vendor.qti.hardware.dsp@1.0-service.rc|fbf2bb38ca6bdddf98c7123da9e1f263a4eec55f
@@ -412,9 +410,7 @@ vendor/etc/seccomp_policy/vendor.qti.hardware.dsp.policy|f060101b26d3674bb173e5f
 
 # Vendor - ETC
 vendor/etc/gpfspath_oem_config.xml|7aeade35b0bbe27530f6aca8c1ed5192a7acf59d
-vendor/etc/media_codecs_dolby_audio.xml|a794eb15fc198d0285510260025cd99b53fa174f
 vendor/etc/vintf/manifest/manifest_android.hardware.drm@1.3-service.widevine.xml|ebebcf8f367641480cf7d512fc06e6ab777527be
-vendor/etc/vintf/manifest/manifest_vendor.dolby.hardware.dms.xml|c8095f649de19b80271fb429b4b6b439297a0678
 vendor/etc/vintf/manifest/vendor.qti.gnss@4.0-service.xml|6514b13f55abc0acc28e004c35ff93fb972d61a9
 
 # Vendor - EGL Libraries (32-bit)
@@ -471,8 +467,6 @@ vendor/lib/libaudioparsers.so|9f22defa83a7aea16d45e609579361e523f8b773
 vendor/lib/libc2d30_bltlib.so|6e086b51de5f0b8fb45b18fdec7b4e7d5182420b
 vendor/lib/libcdsp_default_listener.so|a6d2f3139eb94edb58eb8c97af85f8236bdedbfb
 vendor/lib/libcdsprpc.so|72c4150d4358b335d2b88ccb5ca34e23d08ee238
-vendor/lib/libdapparamstorage.so|1f95652cfc889b66a0eb6bc3d71f647851f41c3d
-vendor/lib/libdeccfg.so|7fced6479c0f12d7585b43c9550fdb14e1a3578c
 vendor/lib/libdiag.so|692bc966dfd91498a2ccbfbb11152bba05e44c4e
 vendor/lib/libdrc.so|1bfd492c38cfdea25beba3ed992d883b972fb9fb
 vendor/lib/libdsd2pcm.so|7f17a4d46f2090665b8d0c6b2d7ade526d3dc266
@@ -524,7 +518,6 @@ vendor/lib/libsysmon_cdsp_skel.so|636f834df2e62cbd6fd6c2bf3040a3272ca72714
 vendor/lib/libthermalclient.so|c95984e29617243ae7ce7f7da01663e6b0c87e94
 vendor/lib/libtinyxml2_1.so|dfe3efe3a6e5ad5beb6e4e9adb02eef475b421a7
 vendor/lib/sensors.native.so|5a9848cd2eb4065275fd7fcf3fa08a0aa3247859
-vendor/lib/vendor.dolby.hardware.dms@2.0.so|da5277dbeded94c17cf2cbc0f3412b3fcd475f58
 vendor/lib/vendor.qti.hardware.dsp@1.0.so|a5ebb76b2098437027f290f6550115561c015774
 vendor/lib/vendor.qti.memory.pasrmanager@1.0.so|508a1281deed810d2f4f8b555d6ba9d8f2145a42
 vendor/lib/vendor.qti.memory.pasrmanager@1.1.so|f8b9c709b13c80143c3a9f976e716cdfd97989d9
@@ -614,10 +607,8 @@ vendor/lib64/libcneoplookup.so|6d6d4c011055b928db1af56e810cacc392124d17
 vendor/lib64/libcneqmiutils.so|f38d86aecbef4b5d54bfdd9824fc9b2e82067510
 vendor/lib64/libconfigdb.so|4588957364a36adbd71deeb21a50dc230f464892
 vendor/lib64/libcpion.so|b003637dbf1a6f3d1a4271dfdc5c7dc10e094960
-vendor/lib64/libdapparamstorage.so|85e56a8415e0bd4033fa6b770f8dac580d6983de
 vendor/lib64/libdataitems.so|8beacec3b50b7fede1a3af1af483f7715e8c5d2d
 vendor/lib64/libdiag.so|2a3ddc294baf1da4132ae00e83d2e4a806c2a568
-vendor/lib64/libdlbdsservice.so|790f19c8e1ac1d5390ffec4745d0585d84fd3350
 vendor/lib64/libdpmqmihal.so|49fdb6c6b8cf5f677a4046e9af814116a8d39f31
 vendor/lib64/libdrmfs.so|5614abef4cd59d76c94c1c6c42276ddc39c81c00
 vendor/lib64/libdrmtime.so|10b57e3f6dddf974924bc90fb620fd4d0505ef89
@@ -723,8 +714,6 @@ vendor/lib64/qcrild_librilutils.so|c3f478e2b9dcb269978bffdd55c3feeb1dfb121a
 vendor/lib64/qtibus.so|bc71f4e14178f7a3254f65b920ab86efbfd0efc2
 vendor/lib64/qtimutex.so|3fb738b6a28e7f07ac4c94d384e39b81c979df70
 vendor/lib64/sensors.native.so|e6f84a8909d2e6a812f07c9853c4b7282eec80aa
-vendor/lib64/vendor.dolby.hardware.dms@2.0-impl.so|837272d231c9a2de863653c486acf8aee1c04d30
-vendor/lib64/vendor.dolby.hardware.dms@2.0.so|0ca0f1a99ea973b4977a60a8a94b8ddd03635531
 vendor/lib64/vendor.qti.data.factory@2.0.so;MODULE_SUFFIX=_vendor|165f24084eef7aea42137f8071619a0d2bc14aa9
 vendor/lib64/vendor.qti.data.factory@2.1.so;MODULE_SUFFIX=_vendor|701985f2a1d8f5415389fa7a957e9a26b4122720
 vendor/lib64/vendor.qti.data.factory@2.2.so;MODULE_SUFFIX=_vendor|5133368d96f1543bad1df702fad361f6b203fb11
