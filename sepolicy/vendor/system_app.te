@@ -26,3 +26,18 @@ allow system_app hal_audio_default:binder { call };
 allow system_app hal_camera_default:binder { call };
 allow system_app hal_health_default:binder { call };
 allow system_app hal_memtrack_default:binder { call };
+
+# Разрешить чтение GPU
+allow system_app sysfs_gpu_freq:file r_file_perms;
+allow system_app sysfs_gpu_freq:dir search;
+
+# Разрешить чтение/запись battery (bypass charge)
+allow system_app sysfs_battery_supply:file rw_file_perms;
+allow system_app sysfs_battery_supply:dir search;
+
+# Разрешить чтение USB supply
+allow system_app sysfs_usb_supply:file r_file_perms;
+allow system_app sysfs_usb_supply:dir search;
+
+allow system_app sysfs_kgsl_gpuclk:file rw_file_perms;
+allow system_app sysfs_kgsl_gpuclk:dir search;

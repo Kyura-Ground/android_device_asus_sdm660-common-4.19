@@ -134,8 +134,8 @@ on early-boot
     setprop ro.sf.lcd_density ${persist.panel.density}
     setprop ro.alarm_boot false
 
-    chown system graphics /sys/class/backlight/panel0-backlight/brightness
-    chown system graphics /sys/class/backlight/panel0-backlight/max_brightness
+    chown system graphics /sys/class/backlight/backlight/brightness
+    chown system graphics /sys/class/backlight/backlight/max_brightness
 
 # ═══════════════════════════════════════════════════════════════════════════
 on boot
@@ -191,14 +191,6 @@ on boot
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
 
-    # dload / ramdump
-    chown root system /sys/kernel/dload/emmc_dload
-    chmod 0660 /sys/kernel/dload/emmc_dload
-    chown root system /dev/block/bootdevice/by-name/ramdump
-    chmod 0660 /dev/block/bootdevice/by-name/ramdump
-    chown root system /sys/kernel/dload/dload_mode
-    chmod 0660 /sys/kernel/dload/dload_mode
-
     # Persist directories (legacy + treble)
     mkdir /persist/drm 0770 system system
     mkdir /persist/bluetooth 0770 bluetooth bluetooth
@@ -253,9 +245,7 @@ on post-fs-data
     mkdir /data/vendor/camera          0770 camera camera
     mkdir /data/vendor/tombstones      0771 system system
     mkdir /data/vendor/tombstones/rfs  0771 system system
-    mkdir /data/vendor/ramdump         0771 root system
     mkdir /data/vendor/bluetooth       0770 bluetooth bluetooth
-    mkdir /data/vendor/ramdump/bluetooth 0770 bluetooth bluetooth
     mkdir /data/vendor/vpp             0770 media media
     mkdir /data/vendor/tui             0700 system drmrpc
 
@@ -321,11 +311,6 @@ on post-fs-data
     mkdir /data/vendor/nfc            0770 nfc nfc
     mkdir /data/vendor/fm             0770 system system
     chmod 0770 /data/vendor/fm
-
-    # PERFD
-    mkdir /data/vendor/perfd 0770 root system
-    chmod 2770 /data/vendor/perfd
-    rm /data/vendor/perfd/default_values
 
     # Radio database
     write /data/vendor/radio/copy_complete 0
@@ -398,53 +383,12 @@ on property:sys.boot_completed=1
     chown media audio /sys/kernel/aud_dev/state
     write /sys/devices/virtual/cvp/cvp/boot 1
 
-    # LMKD reinit
-    setprop lmkd.reinit 1
-
-    # Memory cgroup swappiness
-    write /sys/fs/cgroup/memory/bg/memory.swappiness 140
-
     # LPM
     write /sys/module/lpm_levels/parameters/sleep_disabled 0
 
 on property:ro.vendor.iocgrp.config=1
     write /dev/blkio/blkio.weight 1000
     write /dev/blkio/background/blkio.weight 200
-
-on property:persist.sys.ssr.enable_debug=*
-    write /sys/module/subsystem_restart/parameters/enable_debug ${persist.sys.ssr.enable_debug}
-
-on property:persist.sys.mba_boot_timeout=*
-    write /sys/module/pil_msa/parameters/pbl_mba_boot_timeout_ms ${persist.sys.mba_boot_timeout}
-
-on property:persist.sys.modem_auth_timeout=*
-    write /sys/module/pil_msa/parameters/modem_auth_timeout_ms ${persist.sys.modem_auth_timeout}
-
-on property:persist.sys.pil_proxy_timeout=*
-    write /sys/module/peripheral_loader/parameters/proxy_timeout_ms ${persist.sys.pil_proxy_timeout}
-
-on property:persist.vendor.ssr.restart_level=*
-    start vendor.ssr_setup
-
-on property:persist.vendor.ssr.enable_ramdumps=1
-    write /sys/module/subsystem_restart/parameters/enable_ramdumps 1
-    write /sys/module/qcom_ramdump/parameters/enable_dump_collection 1
-    mkdir /data/vendor/ramdump_ssr 0770 system system
-    start vendor.ss_ramdump
-
-on property:persist.vendor.ssr.enable_ramdumps=0
-    write /sys/module/subsystem_restart/parameters/enable_ramdumps 0
-    write /sys/module/qcom_ramdump/parameters/enable_dump_collection 0
-
-on property:persist.vendor.sys.rawdump_copy=1
-    write /sys/kernel/dload/emmc_dload 1
-
-on property:persist.vendor.sys.rawdump_copy=0
-    write /sys/kernel/dload/emmc_dload 0
-
-on property:persist.debug.trace=1
-    mkdir /data/core 0777 root root
-    write /proc/sys/kernel/core_pattern "/data/core/%E.%p.%e"
 
 on property:vendor.media.target.version=*
     setprop vendor.sys.media.target.version ${vendor.media.target.version}
@@ -563,16 +507,6 @@ service charger /system/bin/charger
     group system graphics input
     capabilities SYS_BOOT
     seclabel u:r:charger:s0
-
-service vendor.ssr_setup /system/vendor/bin/ssr_setup
-    oneshot
-    disabled
-
-service vendor.ss_ramdump /system/vendor/bin/subsystem_ramdump
-    class main
-    user system
-    group system
-    disabled
 
 service vendor.power_off_alarm /vendor/bin/power_off_alarm
     class core

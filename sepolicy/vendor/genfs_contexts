@@ -39,11 +39,22 @@ genfscon sysfs /block/zram0/disksize      u:object_r:sysfs_zram:s0
 genfscon sysfs /block/zram0/comp_algorithm u:object_r:sysfs_zram:s0
 genfscon sysfs /block/zram0/max_comp_streams u:object_r:sysfs_zram:s0
 
-# GPU / KGSL freq
-genfscon sysfs /class/kgsl/kgsl-3d0/devfreq        u:object_r:sysfs_kgsl:s0
-genfscon sysfs /class/kgsl/kgsl-3d0/max_gpu_clk    u:object_r:sysfs_kgsl:s0
-genfscon sysfs /class/kgsl/kgsl-3d0/min_pwrlevel   u:object_r:sysfs_kgsl:s0
-genfscon sysfs /class/kgsl/kgsl-3d0/max_pwrlevel   u:object_r:sysfs_kgsl:s0
-
 # Allow kernel to read persist partition
 genfscon ext4 /persist u:object_r:persist_file:s0
+
+# GPU - Adreno 5xx
+genfscon sysfs /devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/devfreq/available_frequencies u:object_r:sysfs_gpu_freq:s0
+genfscon sysfs /devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/devfreq/min_freq u:object_r:sysfs_gpu_freq:s0
+genfscon sysfs /devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/devfreq/max_freq u:object_r:sysfs_gpu_freq:s0
+genfscon sysfs /devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/devfreq/cur_freq u:object_r:sysfs_gpu_freq:s0
+genfscon sysfs /devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/devfreq/available_governors u:object_r:sysfs_gpu_freq:s0
+genfscon sysfs /devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/devfreq/governor u:object_r:sysfs_gpu_freq:s0
+genfscon sysfs /devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/gpu_busy_percentage u:object_r:sysfs_gpu_freq:s0
+genfscon sysfs /devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/gpu_clock_stats u:object_r:sysfs_gpu_freq:s0
+
+# Performance mode
+genfscon proc /sys/vm/drop_caches                 u:object_r:proc_drop_caches:s0
+genfscon proc /sys/vm/vfs_cache_pressure          u:object_r:proc_vfs_cache_pressure:s0
+genfscon proc /sys/kernel/sched_migration_cost_ns u:object_r:proc_sched:s0
+
+
