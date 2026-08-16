@@ -1,35 +1,46 @@
 # Copyright (c) 2009-2012, 2014-2021, The Linux Foundation. All rights reserved.
+#
+# ASUS X00TD / X01BD — init.qcom.rc
+# Kernel 4.19, Android 16, SDM660/SDM636
 
 import /vendor/etc/init/hw/init.qcom.usb.rc
 import /vendor/etc/init/hw/init.target.rc
-import /vendor/etc/init/hw/init.qcom.asus.rc
-import /vendor/etc/init/hw/init.device.rc
+import /vendor/etc/init/hw/init.asus.sdm660-common.rc
+import /vendor/etc/init/hw/init.asus.X00TD.rc
+import /vendor/etc/init/hw/init.asus.X01BD.rc
 import /vendor/etc/init/hw/init.zram.rc
 
+# ═══════════════════════════════════════════════════════════════════════════
 on early-init
+# ═══════════════════════════════════════════════════════════════════════════
+
     mkdir /dev/cpuset 0750 system system
-    mkdir /dev/stune 0750 system system
+    mkdir /dev/stune  0750 system system
     mkdir /dev/cpuctl 0755 system system
-    
+
     chown system graphics /sys/class/drm/card0/device/power/control
+
     chown root system /dev/kmsg
     chmod 0620 /dev/kmsg
 
+# ═══════════════════════════════════════════════════════════════════════════
 on init
-    # Создаем суб-контейнеры для cpuset
-    mkdir /dev/cpuset/foreground 0750 system system
-    mkdir /dev/cpuset/background 0750 system system
-    mkdir /dev/cpuset/system-background 0750 system system
-    mkdir /dev/cpuset/top-app 0750 system system
-    mkdir /dev/cpuset/restricted 0750 system system
+# ═══════════════════════════════════════════════════════════════════════════
 
-    # Выдаем права на cpuset файлы
+    # cpuset sub-groups
+    mkdir /dev/cpuset/foreground        0750 system system
+    mkdir /dev/cpuset/background        0750 system system
+    mkdir /dev/cpuset/system-background 0750 system system
+    mkdir /dev/cpuset/top-app           0750 system system
+    mkdir /dev/cpuset/restricted        0750 system system
+
     chmod 0664 /dev/cpuset/tasks
     chmod 0664 /dev/cpuset/foreground/tasks
     chmod 0664 /dev/cpuset/background/tasks
     chmod 0664 /dev/cpuset/system-background/tasks
     chmod 0664 /dev/cpuset/top-app/tasks
     chmod 0664 /dev/cpuset/restricted/tasks
+
     chmod 0664 /dev/cpuset/cgroup.procs
     chmod 0664 /dev/cpuset/foreground/cgroup.procs
     chmod 0664 /dev/cpuset/background/cgroup.procs
@@ -37,13 +48,12 @@ on init
     chmod 0664 /dev/cpuset/top-app/cgroup.procs
     chmod 0664 /dev/cpuset/restricted/cgroup.procs
 
-    # Создаем суб-контейнеры для EAS SchedTune (/dev/stune)
+    # EAS SchedTune
     mkdir /dev/stune/foreground 0750 system system
     mkdir /dev/stune/background 0750 system system
-    mkdir /dev/stune/top-app 0750 system system
-    mkdir /dev/stune/rt 0750 system system
+    mkdir /dev/stune/top-app    0750 system system
+    mkdir /dev/stune/rt         0750 system system
 
-    # Выдаем права на SchedTune
     chown system system /dev/stune
     chown system system /dev/stune/foreground
     chown system system /dev/stune/background
@@ -54,28 +64,32 @@ on init
     chown system system /dev/stune/background/tasks
     chown system system /dev/stune/top-app/tasks
     chown system system /dev/stune/rt/tasks
+
     chmod 0664 /dev/stune/tasks
     chmod 0664 /dev/stune/foreground/tasks
     chmod 0664 /dev/stune/background/tasks
     chmod 0664 /dev/stune/top-app/tasks
     chmod 0664 /dev/stune/rt/tasks
-    
+
     # Memory cgroup
     mkdir /sys/fs/cgroup/memory/bg 0750 root system
     write /sys/fs/cgroup/memory/bg/memory.move_charge_at_immigrate 1
     chown root system /sys/fs/cgroup/memory/bg/tasks
-    write /sys/kernel/icnss/wpss_boot 1
     chmod 0660 /sys/fs/cgroup/memory/bg/tasks
 
-    # Suspend to RAM
+    # WPSS
+    write /sys/kernel/icnss/wpss_boot 1
+
+    # Suspend mode
     write /sys/power/mem_sleep "deep"
 
-    # CPU accounting cgroup
+    # CPU accounting
     mount cgroup none /acct cpuacct
 
-    # blkio cgroup v1 — mount early for kernel 4.19
+    # blkio cgroup v1
     mkdir /dev/blkio 0755 root system
     mount cgroup none /dev/blkio blkio
+
     chown root system /dev/blkio
     chmod 0755 /dev/blkio
     chown root system /dev/blkio/tasks
@@ -84,6 +98,7 @@ on init
     chmod 0664 /dev/blkio/blkio.weight
     chown root system /dev/blkio/blkio.group_idle
     chmod 0664 /dev/blkio/blkio.group_idle
+
     write /dev/blkio/blkio.weight 1000
     write /dev/blkio/blkio.group_idle 0
 
@@ -97,88 +112,126 @@ on init
     write /dev/blkio/background/blkio.weight 200
     write /dev/blkio/background/blkio.group_idle 0
 
+# ═══════════════════════════════════════════════════════════════════════════
 on post-fs
+# ═══════════════════════════════════════════════════════════════════════════
+
     write /sys/class/graphics/fb0/idle_time 100
 
+# ═══════════════════════════════════════════════════════════════════════════
 on early-boot
+# ═══════════════════════════════════════════════════════════════════════════
+
     setrlimit 8 67108864 67108864
+
+    # ADSP — required for audio
     write /sys/kernel/boot_adsp/boot 1
+    # CDSP
     write /sys/kernel/boot_cdsp/boot 1
+    # NPU
     write /sys/devices/virtual/npu/msm_npu/boot 1
+
     setprop ro.sf.lcd_density ${persist.panel.density}
     setprop ro.alarm_boot false
+
     chown system graphics /sys/class/backlight/panel0-backlight/brightness
     chown system graphics /sys/class/backlight/panel0-backlight/max_brightness
 
+# ═══════════════════════════════════════════════════════════════════════════
 on boot
+# ═══════════════════════════════════════════════════════════════════════════
+
     start vendor.rmt_storage
     chmod 0444 /sys/devices/soc0/serial_number
 
-    # Ограничиваем фоновые cpuset (Kryo 260 Silver: ядра 0-3) на старте
+    # Initial cpusets (post_boot.sh sets final values)
     write /dev/cpuset/background/cpus 0-3
     write /dev/cpuset/system-background/cpus 0-3
     write /dev/cpuset/restricted/cpus 0-3
-    # Active cpusets
     write /dev/cpuset/foreground/cpus 0-7
     write /dev/cpuset/top-app/cpus 0-7
 
+    setprop vendor.post_boot.parsed 0
+
     # Bluetooth
     chown bluetooth bluetooth /sys/module/bluetooth_power/parameters/power
-    chown bluetooth net_bt /sys/class/rfkill/rfkill0/type
-    chown bluetooth net_bt /sys/class/rfkill/rfkill0/state
+    chown bluetooth net_bt    /sys/class/rfkill/rfkill0/type
+    chown bluetooth net_bt    /sys/class/rfkill/rfkill0/state
     chown bluetooth bluetooth /proc/bluetooth/sleep/proto
     chown bluetooth bluetooth /sys/module/hci_uart/parameters/ath_lpm
     chown bluetooth bluetooth /sys/module/hci_uart/parameters/ath_btwrite
-    chown system system /sys/module/sco/parameters/disable_esco
+    chown system    system    /sys/module/sco/parameters/disable_esco
     chown bluetooth bluetooth /sys/module/hci_smd/parameters/hcismd_set
-    chown system system /sys/module/radio_iris_transport/parameters/fmsmd_set
+    chown system    system    /sys/module/radio_iris_transport/parameters/fmsmd_set
+
     chmod 0660 /sys/module/bluetooth_power/parameters/power
     chmod 0660 /sys/module/hci_smd/parameters/hcismd_set
     chmod 0660 /sys/module/radio_iris_transport/parameters/fmsmd_set
     chmod 0660 /sys/class/rfkill/rfkill0/state
     chmod 0660 /proc/bluetooth/sleep/proto
+
     chown bluetooth net_bt /dev/ttyHS0
+    chmod 0660 /dev/ttyHS0
     chmod 0660 /sys/module/hci_uart/parameters/ath_lpm
     chmod 0660 /sys/module/hci_uart/parameters/ath_btwrite
-    chmod 0660 /dev/ttyHS0
+
     chown bluetooth bluetooth /sys/devices/platform/msm_serial_hs.0/clock
     chmod 0660 /sys/devices/platform/msm_serial_hs.0/clock
+
     chmod 0660 /dev/ttyHS2
     chown bluetooth bluetooth /dev/ttyHS2
+
     chown bluetooth net_bt /sys/class/rfkill/rfkill0/device/extldo
     chmod 0660 /sys/class/rfkill/rfkill0/device/extldo
 
     # Audio
     chown media audio /sys/kernel/snd_card/card_state
+
+    # Radio QMUX socket
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
 
-    # Persist and storage
+    # dload / ramdump
+    chown root system /sys/kernel/dload/emmc_dload
+    chmod 0660 /sys/kernel/dload/emmc_dload
+    chown root system /dev/block/bootdevice/by-name/ramdump
+    chmod 0660 /dev/block/bootdevice/by-name/ramdump
+    chown root system /sys/kernel/dload/dload_mode
+    chmod 0660 /sys/kernel/dload/dload_mode
+
+    # Persist directories (legacy + treble)
     mkdir /persist/drm 0770 system system
     mkdir /persist/bluetooth 0770 bluetooth bluetooth
     mkdir /persist/misc 0770 system system
     mkdir /persist/alarm 0770 system system
-    mkdir /mnt/vendor/persist/alarm 0777 system system
+    mkdir /persist/display 0770 system graphics
+    mkdir /mnt/vendor/persist/alarm     0777 system system
     chmod 0666 /mnt/vendor/persist/alarm/data
-    mkdir /mnt/vendor/persist/time 0770 system system
-    mkdir /mnt/vendor/persist/secnvm 0770 system system
-    mkdir /mnt/vendor/persist/iar_db 0770 system system
-    mkdir /mnt/vendor/spunvm 0770 system system
+    mkdir /mnt/vendor/persist/drm       0770 system system
+    mkdir /mnt/vendor/persist/bluetooth 0770 bluetooth bluetooth
+    mkdir /mnt/vendor/persist/misc      0770 system system
+    mkdir /mnt/vendor/persist/time      0770 system system
+    mkdir /mnt/vendor/persist/secnvm    0770 system system
+    mkdir /mnt/vendor/persist/iar_db    0770 system system
+    mkdir /mnt/vendor/spunvm            0770 system system
 
+    # Network
     setprop wifi.interface wlan0
     setprop ro.telephony.call_ring.multiple false
     chmod 0755 /system/bin/ip
     chmod 0444 /sys/devices/platform/msm_hsusb/gadget/usb_state
     setprop net.tcp.2g_init_rwnd 10
     write /proc/sys/net/netfilter/nf_conntrack_tcp_be_liberal 1
+
     chown system system /sys/module/ccid_bridge/parameters/bulk_msg_timeout
-    mkdir /persist/display 0770 system graphics
-    mkdir /mnt/vendor/persist/display 0770 system graphics
-    mkdir /mnt/vendor/persist/vpp 0770 media media
+
+    # Display / media persist
+    mkdir /mnt/vendor/persist/display    0770 system graphics
+    mkdir /mnt/vendor/persist/vpp        0770 media media
     mkdir /mnt/vendor/persist/hvdcp_opti 0770 root system
 
+    # Camera / WiFi / USB (from init.target.rc original)
     setprop persist.camera.gyro.disable 0
-    mkdir /data/vendor/camera 0770 camera camera
     chown wifi wifi /sys/module/wlan/parameters/fwpath
     setprop vendor.usb.rndis.func.name "rndis_bam"
     setprop vendor.usb.rmnet.func.name "rmnet_bam"
@@ -186,17 +239,25 @@ on boot
     setprop vendor.usb.dpl.inst.name "dpl"
     setprop vendor.usb.qdss.inst.name "qdss"
 
+# ═══════════════════════════════════════════════════════════════════════════
 on post-fs-data
-    mkdir /data/vendor/misc 01771 system system
-    mkdir /data/vendor/display 0770 system graphics
-    mkdir /data/vendor/lm 0700 root root
-    mkdir /data/vendor/media 0770 mediacodec media
-    mkdir /data/vendor/tzstorage 0770 system system
-    mkdir /data/vendor/qtee 0770 system system
-    mkdir /data/vendor/camera 0770 camera camera
-    mkdir /data/vendor/tombstones 0771 system system
-    mkdir /data/vendor/tombstones/rfs 0771 system system
-    mkdir /data/vendor/bluetooth 0770 bluetooth bluetooth
+# ═══════════════════════════════════════════════════════════════════════════
+
+    mkdir /data/vendor/misc            01771 system system
+    mkdir /data/vendor/ssrdump         0770 root system
+    mkdir /data/vendor/display         0770 system graphics
+    mkdir /data/vendor/lm              0700 root root
+    mkdir /data/vendor/media           0770 mediacodec media
+    mkdir /data/vendor/tzstorage       0770 system system
+    mkdir /data/vendor/qtee            0770 system system
+    mkdir /data/vendor/camera          0770 camera camera
+    mkdir /data/vendor/tombstones      0771 system system
+    mkdir /data/vendor/tombstones/rfs  0771 system system
+    mkdir /data/vendor/ramdump         0771 root system
+    mkdir /data/vendor/bluetooth       0770 bluetooth bluetooth
+    mkdir /data/vendor/ramdump/bluetooth 0770 bluetooth bluetooth
+    mkdir /data/vendor/vpp             0770 media media
+    mkdir /data/vendor/tui             0700 system drmrpc
 
     # Vibrator
     chown system system /sys/class/leds/vibrator/activate
@@ -208,90 +269,178 @@ on post-fs-data
     chmod 0660 /sys/class/leds/vibrator/state
     chmod 0660 /sys/class/leds/vibrator/vmax_mv
 
-    # Wifi
-    mkdir /data/vendor/wifi 0770 wifi wifi
-    mkdir /data/vendor/wifi/sockets 0770 wifi wifi
-    mkdir /data/vendor/wifi/hostapd 0770 wifi wifi
-    mkdir /data/vendor/wifi/hostapd/ctrl 0770 wifi wifi
+    # WiFi directories
+    mkdir /data/vendor/wifi                0770 wifi wifi
+    mkdir /data/vendor/wifi/sockets        0770 wifi wifi
+    mkdir /data/vendor/wifi/hostapd        0770 wifi wifi
+    mkdir /data/vendor/wifi/hostapd/ctrl   0770 wifi wifi
     mkdir /data/vendor/wifi/wpa_supplicant 0770 wifi wifi
-    mkdir /data/vendor/wifi/wpa 0770 wifi wifi
-    mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
-    mkdir /data/vendor/connectivity 0771 radio radio
+    mkdir /data/vendor/wifi/wpa            0770 wifi wifi
+    mkdir /data/vendor/wifi/wpa/sockets    0770 wifi wifi
+    mkdir /data/vendor/connectivity        0771 radio radio
     chown radio radio /data/vendor/connectivity
-    mkdir /data/vendor/audio 0770 audio audio
-    mkdir /data/vendor/audio/acdbdata 0770 media audio
-    mkdir /data/vendor/audio/acdbdata/delta 0770 media audio
-    mkdir /data/vendor/radio 0770 system radio
+
+    # Audio
+    mkdir /data/vendor/audio                 0770 audio audio
+    mkdir /data/vendor/audio/acdbdata        0770 media audio
+    mkdir /data/vendor/audio/acdbdata/delta  0770 media audio
+
+    # Radio
+    mkdir /data/vendor/radio         0770 system radio
     rm /data/vendor/radio/shmbus
-    mkdir /data/vendor/modem_config 0570 radio root
+    mkdir /data/vendor/modem_config  0570 radio root
+
+    # Persist chown
     chown root system /persist
     chmod 0771 /persist
     chown system system /persist/WCNSS_qcom_wlan_nv.bin
+
+    # SD card polling
     chmod 0664 /sys/devices/platform/msm_sdcc.1/polling
     chmod 0664 /sys/devices/platform/msm_sdcc.2/polling
     chown system system /sys/devices/platform/msm_sdcc.1/polling
     chown system system /sys/devices/platform/msm_sdcc.2/polling
-    mkdir /data/vendor/location 0770 gps gps
-    mkdir /data/vendor/location/mq 0770 gps gps
+
+    # GPS / Location
+    mkdir /data/vendor/location        0770 gps gps
+    mkdir /data/vendor/location/mq     0770 gps gps
     mkdir /data/vendor/location/xtwifi 0770 gps gps
-    mkdir /dev/socket/location 0770 gps gps
-    mkdir /dev/socket/location/mq 0770 gps gps
-    mkdir /dev/socket/location/xtra 0770 gps gps
-    mkdir /dev/socket/location/ehub 0770 gps gps
-    mkdir /dev/socket/location/dgnss 0770 gps gps
+    mkdir /dev/socket/location         0770 gps gps
+    mkdir /dev/socket/location/mq      0770 gps gps
+    mkdir /dev/socket/location/xtra    0770 gps gps
+    mkdir /dev/socket/location/ehub    0770 gps gps
+    mkdir /dev/socket/location/dgnss   0770 gps gps
+
+    # WiFi HAL socket
     mkdir /dev/socket/wifihal 0770 wifi wifi
     chmod 2770 /dev/socket/wifihal
-    mkdir /data/vendor/time 0700 system system
-    setprop vold.post_fs_data_done 1
-    mkdir /data/vendor/fm 0770 system system
-    chmod 0770 /data/vendor/fm
-    rm /data/vendor/perfd/default_values
+
+    # Time / Secure / FM
+    mkdir /data/vendor/time           0700 system system
     mkdir /data/vendor/secure_element 0777 system system
-    mkdir /data/vendor/nfc 0770 nfc nfc
+    mkdir /data/vendor/nfc            0770 nfc nfc
+    mkdir /data/vendor/fm             0770 system system
+    chmod 0770 /data/vendor/fm
+
+    # PERFD
+    mkdir /data/vendor/perfd 0770 root system
+    chmod 2770 /data/vendor/perfd
+    rm /data/vendor/perfd/default_values
+
+    # Radio database
     write /data/vendor/radio/copy_complete 0
     chown radio radio /data/vendor/radio/copy_complete
     chmod 0660 /data/vendor/radio/copy_complete
+
     copy /vendor/radio/qcril_database/qcril.db /data/vendor/radio/qcril_prebuilt.db
     chown radio radio /data/vendor/radio/qcril_prebuilt.db
     chmod 0660 /data/vendor/radio/qcril_prebuilt.db
+
     write /data/vendor/radio/prebuilt_db_support 1
     chown radio radio /data/vendor/radio/prebuilt_db_support
     chmod 0400 /data/vendor/radio/prebuilt_db_support
+
     write /data/vendor/radio/db_check_done 0
     chown radio radio /data/vendor/radio/db_check_done
     chmod 0660 /data/vendor/radio/db_check_done
+
+    # Swap
     mkdir /data/vendor/swap 0770 root system
     chmod 2770 /data/vendor/swap
 
-    # eMMC + FBE I/O tuning during boot
+    # eMMC + dm I/O tuning (pre-boot, post_boot.sh sets final)
     write /sys/block/mmcblk0/queue/rotational 0
     write /sys/block/mmcblk0/queue/iostats 0
     write /sys/block/mmcblk0/queue/add_random 0
     write /sys/block/mmcblk0/queue/nr_requests 128
     write /sys/block/mmcblk0/queue/rq_affinity 1
     write /sys/block/mmcblk0/queue/read_ahead_kb 1024
-    write /sys/block/dm-0/queue/rotational 0
-    write /sys/block/dm-1/queue/rotational 0
-    write /sys/block/dm-2/queue/rotational 0
-    write /sys/block/dm-0/queue/iostats 0
-    write /sys/block/dm-1/queue/iostats 0
-    write /sys/block/dm-2/queue/iostats 0
-    write /sys/block/dm-0/queue/nr_requests 128
-    write /sys/block/dm-1/queue/nr_requests 128
-    write /sys/block/dm-2/queue/nr_requests 128
-    write /sys/block/dm-0/queue/rq_affinity 1
-    write /sys/block/dm-1/queue/rq_affinity 1
-    write /sys/block/dm-2/queue/rq_affinity 1
-    write /sys/block/dm-0/queue/read_ahead_kb 1024
-    write /sys/block/dm-1/queue/read_ahead_kb 1024
-    write /sys/block/dm-2/queue/read_ahead_kb 1024
-    mkdir /data/vendor/vpp 0770 media media
-    mkdir /data/vendor/tui 0700 system drmrpc
 
-# blkio already mounted in on init, this is fallback
+    write /sys/block/dm-0/queue/rotational 0
+    write /sys/block/dm-0/queue/iostats 0
+    write /sys/block/dm-0/queue/nr_requests 128
+    write /sys/block/dm-0/queue/rq_affinity 1
+    write /sys/block/dm-0/queue/read_ahead_kb 1024
+
+    write /sys/block/dm-1/queue/rotational 0
+    write /sys/block/dm-1/queue/iostats 0
+    write /sys/block/dm-1/queue/nr_requests 128
+    write /sys/block/dm-1/queue/rq_affinity 1
+    write /sys/block/dm-1/queue/read_ahead_kb 1024
+
+    write /sys/block/dm-2/queue/rotational 0
+    write /sys/block/dm-2/queue/iostats 0
+    write /sys/block/dm-2/queue/nr_requests 128
+    write /sys/block/dm-2/queue/rq_affinity 1
+    write /sys/block/dm-2/queue/read_ahead_kb 1024
+
+    setprop vold.post_fs_data_done 1
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PROPERTY TRIGGERS
+# ═══════════════════════════════════════════════════════════════════════════
+
+on property:sys.boot_completed=1
+    write /dev/kmsg "Boot completed"
+
+    # Start post-boot tuning
+    start vendor.qcom-post-boot
+
+    # Read ahead back to normal
+    write /sys/block/mmcblk0/queue/read_ahead_kb 128
+    write /sys/block/dm-0/queue/read_ahead_kb 128
+    write /sys/block/dm-1/queue/read_ahead_kb 128
+    write /sys/block/dm-2/queue/read_ahead_kb 128
+
+    # Audio / DSP nodes
+    chown media audio /sys/kernel/wdsp0/boot
+    chown media audio /sys/kernel/wcd_cpe0/fw_name
+    chown media audio /sys/kernel/aud_dev/state
+    write /sys/devices/virtual/cvp/cvp/boot 1
+
+    # LMKD reinit
+    setprop lmkd.reinit 1
+
+    # Memory cgroup swappiness
+    write /sys/fs/cgroup/memory/bg/memory.swappiness 140
+
+    # LPM
+    write /sys/module/lpm_levels/parameters/sleep_disabled 0
+
 on property:ro.vendor.iocgrp.config=1
     write /dev/blkio/blkio.weight 1000
     write /dev/blkio/background/blkio.weight 200
+
+on property:persist.sys.ssr.enable_debug=*
+    write /sys/module/subsystem_restart/parameters/enable_debug ${persist.sys.ssr.enable_debug}
+
+on property:persist.sys.mba_boot_timeout=*
+    write /sys/module/pil_msa/parameters/pbl_mba_boot_timeout_ms ${persist.sys.mba_boot_timeout}
+
+on property:persist.sys.modem_auth_timeout=*
+    write /sys/module/pil_msa/parameters/modem_auth_timeout_ms ${persist.sys.modem_auth_timeout}
+
+on property:persist.sys.pil_proxy_timeout=*
+    write /sys/module/peripheral_loader/parameters/proxy_timeout_ms ${persist.sys.pil_proxy_timeout}
+
+on property:persist.vendor.ssr.restart_level=*
+    start vendor.ssr_setup
+
+on property:persist.vendor.ssr.enable_ramdumps=1
+    write /sys/module/subsystem_restart/parameters/enable_ramdumps 1
+    write /sys/module/qcom_ramdump/parameters/enable_dump_collection 1
+    mkdir /data/vendor/ramdump_ssr 0770 system system
+    start vendor.ss_ramdump
+
+on property:persist.vendor.ssr.enable_ramdumps=0
+    write /sys/module/subsystem_restart/parameters/enable_ramdumps 0
+    write /sys/module/qcom_ramdump/parameters/enable_dump_collection 0
+
+on property:persist.vendor.sys.rawdump_copy=1
+    write /sys/kernel/dload/emmc_dload 1
+
+on property:persist.vendor.sys.rawdump_copy=0
+    write /sys/kernel/dload/emmc_dload 0
 
 on property:persist.debug.trace=1
     mkdir /data/core 0777 root root
@@ -307,15 +456,41 @@ on property:vendor.media.target_variant=*
     setprop ro.media.xml_variant.codecs ${vendor.media.target_variant}
     setprop ro.media.xml_variant.codecs_performance ${vendor.media.target_variant}
 
+on property:sys.sysctl.tcp_adv_win_scale=*
+    write /proc/sys/net/ipv4/tcp_adv_win_scale ${sys.sysctl.tcp_adv_win_scale}
+
+on property:ro.vendor.ril.mbn_copy_completed=1
+    write /data/vendor/radio/copy_complete 1
+
+on property:vendor.rild.libpath=*
+    setprop rild.libpath ${vendor.rild.libpath}
+
+on property:ro.vendor.radio.noril=*
+    setprop ro.radio.noril ${ro.vendor.radio.noril}
+
+on property:vendor.opengles.version=*
+    setprop ro.opengles.version ${vendor.opengles.version}
+
+on property:vendor.gpu.available_frequencies=*
+    setprop ro.vendor.gpu.available_frequencies ${vendor.gpu.available_frequencies}
+
+on property:sys.shutdown.requested=*
+    write /sys/kernel/shutdown_wlan/shutdown 1
+    stop cnss-daemon
+
+on property:vold.decrypt=trigger_restart_framework
+    start qcom-c_main-sh
+    restart vendor.audio-hal
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SERVICES
+# ═══════════════════════════════════════════════════════════════════════════
+
 service qcom-c_main-sh /vendor/bin/init.class_main.sh
     class main
     user root
     group root system
     oneshot
-
-on property:vold.decrypt=trigger_restart_framework
-    start qcom-c_main-sh
-    restart vendor.audio-hal
 
 service vendor.qrtr-ns /vendor/bin/qrtr-ns -f
     class core
@@ -330,19 +505,12 @@ service irsc_util /vendor/bin/irsc_util "/vendor/etc/sec_config"
     oneshot
     task_profiles ServiceCapacityLow
 
-on property:sys.sysctl.tcp_adv_win_scale=*
-    write /proc/sys/net/ipv4/tcp_adv_win_scale ${sys.sysctl.tcp_adv_win_scale}
-
 service cnss-daemon /vendor/bin/cnss-daemon -n -l
     class late_start
     user system
     group system inet net_admin wifi
     capabilities NET_ADMIN
     task_profiles ServiceCapacityLow
-
-on property:sys.shutdown.requested=*
-    write /sys/kernel/shutdown_wlan/shutdown 1
-    stop cnss-daemon
 
 service ssgqmigd /vendor/bin/ssgqmigd
     class late_start
@@ -381,9 +549,6 @@ service vendor.qcom-post-boot /vendor/bin/init.qcom.post_boot.sh
     disabled
     oneshot
 
-on property:ro.vendor.ril.mbn_copy_completed=1
-    write /data/vendor/radio/copy_complete 1
-
 service hostapd_fst /vendor/bin/hw/hostapd -dd -g /data/vendor/wifi/hostapd/global
     class main
     capabilities NET_ADMIN NET_RAW
@@ -399,22 +564,15 @@ service charger /system/bin/charger
     capabilities SYS_BOOT
     seclabel u:r:charger:s0
 
-service vendor.ssr_diag /system/vendor/bin/ssr_diag
-    class late_start
+service vendor.ssr_setup /system/vendor/bin/ssr_setup
+    oneshot
+    disabled
+
+service vendor.ss_ramdump /system/vendor/bin/subsystem_ramdump
+    class main
     user system
     group system
     disabled
-
-on charger
-    start vendor.qcom-post-boot
-    start vendor.hvdcp_opti
-    start vendor.power_off_alarm
-
-on property:vendor.rild.libpath=*
-    setprop rild.libpath ${vendor.rild.libpath}
-
-on property:ro.vendor.radio.noril=*
-    setprop ro.radio.noril ${ro.vendor.radio.noril}
 
 service vendor.power_off_alarm /vendor/bin/power_off_alarm
     class core
@@ -422,177 +580,7 @@ service vendor.power_off_alarm /vendor/bin/power_off_alarm
     disabled
     oneshot
 
-on property:vendor.opengles.version=*
-    setprop ro.opengles.version ${vendor.opengles.version}
-
-on property:vendor.gpu.available_frequencies=*
-    setprop ro.vendor.gpu.available_frequencies ${vendor.gpu.available_frequencies}
-
-# Copyright (c) 2013-2018, 2020, 2021 The Linux Foundation. All rights reserved.
-
-on early-init
-    mount debugfs debugfs /sys/kernel/debug
-    chmod 0755 /sys/kernel/debug
-    wait /dev/msm-rng 2
-    write /sys/module/msm_thermal/parameters/enabled N
-
-on fs
-    wait /dev/block/platform/soc/${ro.boot.bootdevice}
-    symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
-    # eMMC scheduler baseline for FBE v2 + emmc_optimized
-    write /sys/block/mmcblk0/queue/scheduler bfq
-    write /sys/block/mmcblk0/queue/iosched/low_latency 1
-    write /sys/block/mmcblk0/queue/iosched/slice_idle 0
-    start hwservicemanager
-    mount_all --early /vendor/etc/fstab.qcom
-    mount tmpfs tmpfs /metadata size=10m
-    chown root system /mnt/vendor/persist
-    chmod 0771 /mnt/vendor/persist
-    restorecon_recursive /mnt/vendor/persist
-    mkdir /mnt/vendor/persist/data 0700 system system
-    mkdir /mnt/vendor/persist/bms 0700 root system
-    write /sys/kernel/boot_adsp/boot 1
-    chown system system /sys/devices/platform/soc/a800000.ssusb/mode
-    mkdir /mnt/vendor/dsp 0770 root root
-    copy /vendor/dsp/cdsp/fastrpc_shell_3 /mnt/vendor/dsp/fastrpc_shell_3
-    chmod 0644 /mnt/vendor/dsp/fastrpc_shell_3
-    mount none /mnt/vendor/dsp/fastrpc_shell_3 /vendor/dsp/cdsp/fastrpc_shell_3 bind
-
-on late-fs
-    mount_all --late /vendor/etc/fstab.qcom
-
-on post-fs
-    write /dev/ipa 1
-    start vendor.qseecomd
-    wait_for_prop vendor.sys.listeners.registered true
-
-on early-boot
-    chown system system /mnt/vendor/persist/sensors
-    chown system system /mnt/vendor/persist/sensors/sns.reg
-    chown system system /mnt/vendor/persist/sensors/sensors_settings
-    chmod 0664 /mnt/vendor/persist/sensors/sensors_settings
-
-on post-fs-data
-    mkdir /data/vendor/nfc 0770 nfc nfc
-
-on boot
-    start vendor.rmt_storage
-    setprop persist.camera.gyro.disable 0
-    mkdir /data/vendor/camera 0770 camera camera
-    chown wifi wifi /sys/module/wlan/parameters/fwpath
-    setprop vendor.usb.rndis.func.name "rndis_bam"
-    setprop vendor.usb.rmnet.func.name "rmnet_bam"
-    setprop vendor.usb.rmnet.inst.name "rmnet"
-    setprop vendor.usb.dpl.inst.name "dpl"
-    setprop vendor.usb.qdss.inst.name "qdss"
-
-service vendor.per_mgr /vendor/bin/pm-service
-    class core
-    user system
-    group system
-    ioprio rt 4
-
-service vendor.per_proxy /vendor/bin/pm-proxy
-    class core
-    user system
-    group system
-    disabled
-
-on property:init.svc.vendor.per_mgr=running
-    start vendor.per_proxy
-
-on property:sys.shutdown.requested=*
-    stop vendor.per_proxy
-
-service vendor.qseecomd /vendor/bin/qseecomd
-    class core
-    user root
-    group root
-
-service vendor-sensor-sh /vendor/bin/init.qcom.sensors.sh
-    class core
-    user root
-    oneshot
-
-service vendor.sensors.qti /vendor/bin/sensors.qti
-    class core
-    user system
-    group system
-    disabled
-
-service vendor.pd_mapper /vendor/bin/pd-mapper
-    class core
-
-on property:vold.decrypt=trigger_restart_framework
-    restart vendor.camera.provider
-
-service dcvs-sh /vendor/bin/init.qti.dcvs.sh
-    class late_start
-    user root
-    group root system
-    disabled
-    oneshot
-
-on property:vendor.dcvs.prop=1
-    start dcvs-sh
-
-# ═══════════════════════════════════════════════════════════════════════════
-# ЕДИНЫЙ КОНСОЛИДИРОВАННЫЙ ТРИГГЕР ЗАВЕРШЕНИЯ ЗАГРУЗКИ (sys.boot_completed)
-# ═══════════════════════════════════════════════════════════════════════════
-on property:sys.boot_completed=1
-    write /dev/kmsg "Boot completed - optimizing system profiles"
-    
-    # 1. Запуск пост-бута для настройки частот и BFQ
+on charger
     start vendor.qcom-post-boot
-
-    # 2. Ограничиваем фоновые cpuset (Kryo Silver: ядра 0-3)
-    write /dev/cpuset/background/cpus 0-3
-    write /dev/cpuset/system-background/cpus 0-3
-    write /dev/cpuset/restricted/cpus 0-3
-    # Активные процессы получают полный доступ ко всем 8 ядрам (0-7)
-    write /dev/cpuset/foreground/cpus 0-7
-    write /dev/cpuset/top-app/cpus 0-7
-
-    # 3. Тюнинг SchedTune (EAS планировщик ядра 4.19)
-    write /dev/stune/schedtune.boost 0
-    write /dev/stune/foreground/schedtune.boost 0
-    write /dev/stune/background/schedtune.boost 0
-    write /dev/stune/top-app/schedtune.boost 1
-    write /dev/stune/rt/schedtune.boost 1
-    write /dev/stune/schedtune.prefer_idle 0
-    write /dev/stune/foreground/schedtune.prefer_idle 0
-    write /dev/stune/background/schedtune.prefer_idle 0
-    write /dev/stune/top-app/schedtune.prefer_idle 1
-    write /dev/stune/rt/schedtune.prefer_idle 1
-
-    # 4. Тюнинг дисковой системы и виртуальной памяти
-    write /sys/block/mmcblk0/queue/read_ahead_kb 256
-    write /sys/block/dm-0/queue/read_ahead_kb 256
-    write /sys/block/dm-1/queue/read_ahead_kb 256
-    write /sys/block/dm-2/queue/read_ahead_kb 256
-    write /sys/block/mmcblk0/queue/scheduler bfq
-    write /sys/block/mmcblk0/queue/iosched/low_latency 1
-    write /sys/block/mmcblk0/queue/iosched/slice_idle 0
-
-    # 5. Тюнинг виртуальной памяти (VM) для eMMC
-    write /proc/sys/vm/dirty_background_ratio 4
-    write /proc/sys/vm/dirty_expire_centisecs 200
-    write /proc/sys/vm/dirty_writeback_centisecs 500
-    write /proc/sys/vm/page-cluster 0
-    write /proc/sys/vm/vfs_cache_pressure 100
-    write /sys/fs/cgroup/memory/bg/memory.swappiness 140
-
-    # 6. Включение термоконтроля и аудио-нод
-    chown media audio /sys/kernel/wdsp0/boot
-    chown media audio /sys/kernel/wcd_cpe0/fw_name
-    chown media audio /sys/kernel/aud_dev/state
-    write /sys/devices/virtual/cvp/cvp/boot 1
-    setprop lmkd.reinit 1
-
-    # Разрешаем ядру уводить ядра процессора в глубокий сон (C3/C4) при выключенном экране
-    write /sys/module/lpm_levels/parameters/sleep_disabled 0
-    write /sys/module/lpm_levels/system/system-pc/idle_enabled 1
-    write /sys/module/lpm_levels/system/system-sve/idle_enabled 1
-    write /sys/module/lpm_levels/system/system-sve-l3/idle_enabled 1
-
-    write /dev/kmsg "Boot completed - thermal caps active, FBE/eMMC profile loaded"
+    start vendor.hvdcp_opti
+    start vendor.power_off_alarm

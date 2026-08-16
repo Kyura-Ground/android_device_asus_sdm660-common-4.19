@@ -1,0 +1,51 @@
+# Copyright (c) 2020, The Linux Foundation. All rights reserved.
+#
+# ASUS SDM660-common
+# Shared init for X00TD / X01BD
+#
+# policy0 = LITTLE (cpu0-3)
+# policy4 = BIG    (cpu4-7)
+#
+# No frequency caps here.
+# Device-specific CPU limits are set in:
+#   init.asus.X00TD.rc
+#   init.asus.X01BD.rc
+
+on late-init
+    # Common ASUS property
+    setprop persist.sys.binary_xml false
+
+on boot
+    # LED permissions
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/brightness
+    chmod 0660 /sys/class/leds/red/brightness
+    chmod 0660 /sys/class/leds/green/brightness
+    chmod 0660 /sys/class/leds/blue/brightness
+
+    # Smart charging
+    chown system system /sys/class/power_supply/battery/charging_enabled
+    chmod 0660 /sys/class/power_supply/battery/charging_enabled
+
+    # DT2W / gestures
+    chown system system /proc/tpd_gesture
+    chmod 0660 /proc/tpd_gesture
+
+on property:ro.product.vendor.model=*
+    setprop vendor.usb.product_string ${ro.product.vendor.model}
+
+# NFC
+service vendor.nfc_hal_service /vendor/bin/hw/android.hardware.nfc-service.nxp
+    override
+    class hal
+    user nfc
+    group nfc
+    disabled
+
+on property:ro.hq.support.nfc=1
+    enable vendor.nfc_hal_service
+
+on property:ro.hq.support.nfc=0
+    stop vendor.nfc_hal_service
+    setprop nfc.initialized 0
