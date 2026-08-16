@@ -84,4 +84,8 @@ cc_library_static {
     srcs: [
         "aidl/PowerModeExtension.cpp",
     ],
+    shared_libs: [
+        "libbase",
+        "liblog",
+    ],
 }
