@@ -47,19 +47,22 @@ namespace impl {
 namespace pixel {
 using ::android::perfmgr::HintManager;
 
-constexpr char kPowerHalStateProp[] = "vendor.powerhal.state";
-constexpr char kPowerHalAudioProp[] = "vendor.powerhal.audio";
+constexpr char kPowerHalStateProp[]     = "vendor.powerhal.state";
+constexpr char kPowerHalAudioProp[]     = "vendor.powerhal.audio";
 constexpr char kPowerHalRenderingProp[] = "vendor.powerhal.rendering";
-constexpr char kTapToWakeNode[] = "/proc/tpd_gesture";
 
 extern bool isDeviceSpecificModeSupported(Mode type, bool* _aidl_return);
 extern bool setDeviceSpecificMode(Mode type, bool enabled);
+extern void restoreDeviceSpecificState();
 
 Power::Power()
     : mInteractionHandler(nullptr),
       mSustainedPerfModeOn(false) {
     mInteractionHandler = std::make_unique<InteractionHandler>();
     mInteractionHandler->Init();
+
+    // Восстановить состояние DT2W из persist-свойства после перезагрузки
+    restoreDeviceSpecificState();
 
     std::string state = ::android::base::GetProperty(kPowerHalStateProp, "");
     if (state == "SUSTAINED_PERFORMANCE") {
@@ -83,7 +86,8 @@ Power::Power()
     }
 
     auto status = this->getInterfaceVersion(&mServiceVersion);
-    LOG(INFO) << "PowerHAL InterfaceVersion:" << mServiceVersion << " isOK: " << status.isOk();
+    LOG(INFO) << "PowerHAL InterfaceVersion:" << mServiceVersion
+              << " isOK: " << status.isOk();
 
     mSupportInfo = SupportManager::makeSupportInfo();
 }
@@ -91,9 +95,14 @@ Power::Power()
 ndk::ScopedAStatus Power::setMode(Mode type, bool enabled) {
     LOG(DEBUG) << "Power setMode: " << toString(type) << " to: " << enabled;
     ATRACE_NAME(("M:" + toString(type) + ":" + (enabled ? "on" : "off")).c_str());
+
     if (HintManager::GetInstance()->IsAdpfSupported()) {
         PowerSessionManager<>::getInstance()->updateHintMode(toString(type), enabled);
     }
+
+    // DOUBLE_TAP_TO_WAKE обрабатывается в setDeviceSpecificMode:
+    // - пишет в /proc/tpd_gesture
+    // - сохраняет persist.vendor.dt2w.enabled
     if (setDeviceSpecificMode(type, enabled)) {
         return ndk::ScopedAStatus::ok();
     }
@@ -105,23 +114,11 @@ ndk::ScopedAStatus Power::setMode(Mode type, bool enabled) {
             }
             mSustainedPerfModeOn = true;
             break;
-        case Mode::DOUBLE_TAP_TO_WAKE:
-            {
-                // Записываем 1 (включено) или 0 (выключено) в узел ядра
-                bool success = ::android::base::WriteStringToFile(enabled ? "1" : "0", kTapToWakeNode);
-                if (!success) {
-                    PLOG(ERROR) << "Failed to write to tap to wake node: " << kTapToWakeNode;
-                }
-                // Возвращаем OK, чтобы не проваливаться в default (DoHint)
-                return ndk::ScopedAStatus::ok();
-            }            
         case Mode::LAUNCH:
             if (mSustainedPerfModeOn) {
                 break;
             }
             [[fallthrough]];
-        // case Mode::DOUBLE_TAP_TO_WAKE: 
-        //    [[fallthrough]];
         case Mode::FIXED_PERFORMANCE:
             [[fallthrough]];
         case Mode::EXPENSIVE_RENDERING:
@@ -283,7 +280,6 @@ ndk::ScopedAStatus Power::closeSessionChannel(int32_t tgid, int32_t uid) {
 }
 
 ndk::ScopedAStatus Power::getSupportInfo(SupportInfo *_aidl_return) {
-    // Copy the support object into the binder
     *_aidl_return = mSupportInfo;
     return ndk::ScopedAStatus::ok();
 }
