@@ -61,7 +61,6 @@ Power::Power()
     mInteractionHandler = std::make_unique<InteractionHandler>();
     mInteractionHandler->Init();
 
-    // Восстановить состояние DT2W из persist-свойства после перезагрузки
     restoreDeviceSpecificState();
 
     std::string state = ::android::base::GetProperty(kPowerHalStateProp, "");
@@ -100,9 +99,6 @@ ndk::ScopedAStatus Power::setMode(Mode type, bool enabled) {
         PowerSessionManager<>::getInstance()->updateHintMode(toString(type), enabled);
     }
 
-    // DOUBLE_TAP_TO_WAKE обрабатывается в setDeviceSpecificMode:
-    // - пишет в /proc/tpd_gesture
-    // - сохраняет persist.vendor.dt2w.enabled
     if (setDeviceSpecificMode(type, enabled)) {
         return ndk::ScopedAStatus::ok();
     }
@@ -206,7 +202,6 @@ binder_status_t Power::dump(int fd, const char **, uint32_t) {
             "SustainedPerformanceMode: %s\n",
             boolToString(HintManager::GetInstance()->IsRunning()),
             boolToString(mSustainedPerfModeOn)));
-    // Dump nodes through libperfmgr
     HintManager::GetInstance()->DumpToFd(fd);
     PowerSessionManager<>::getInstance()->dumpToFd(fd);
     if (!::android::base::WriteStringToFd(buf, fd)) {

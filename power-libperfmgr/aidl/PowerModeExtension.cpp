@@ -15,6 +15,9 @@
  */
 
 #include <aidl/android/hardware/power/BnPower.h>
+#include <android-base/file.h>
+#include <android-base/logging.h>
+#include <android-base/properties.h>
 
 namespace aidl {
 namespace google {
@@ -25,16 +28,46 @@ namespace pixel {
 
 using ::aidl::android::hardware::power::Mode;
 
+constexpr char kTapToWakeNode[] = "/proc/tpd_gesture";
+constexpr char kTapToWakeProp[] = "persist.vendor.dt2w.enabled";
+
 bool isDeviceSpecificModeSupported(Mode type, bool* _aidl_return) {
-    (void) type;
-    (void) _aidl_return;
+    if (type == Mode::DOUBLE_TAP_TO_WAKE) {
+        *_aidl_return = true;
+        return true;
+    }
     return false;
 }
 
 bool setDeviceSpecificMode(Mode type, bool enabled) {
-    (void) type;
-    (void) enabled;
+    if (type == Mode::DOUBLE_TAP_TO_WAKE) {
+        bool success =
+                ::android::base::WriteStringToFile(enabled ? "1" : "0", kTapToWakeNode);
+        if (!success) {
+            PLOG(ERROR) << "Failed to write tap-to-wake node: " << kTapToWakeNode;
+        }
+
+        if (!::android::base::SetProperty(kTapToWakeProp, enabled ? "1" : "0")) {
+            LOG(ERROR) << "Failed to set property: " << kTapToWakeProp;
+        }
+
+        return true;
+    }
     return false;
+}
+
+void restoreDeviceSpecificState() {
+    std::string val = ::android::base::GetProperty(kTapToWakeProp, "0");
+    bool enabled = (val == "1");
+
+    LOG(INFO) << "Restoring DT2W state after reboot: "
+              << (enabled ? "enabled" : "disabled");
+
+    bool success =
+            ::android::base::WriteStringToFile(enabled ? "1" : "0", kTapToWakeNode);
+    if (!success) {
+        PLOG(ERROR) << "Failed to restore tap-to-wake node: " << kTapToWakeNode;
+    }
 }
 
 }  // namespace pixel
