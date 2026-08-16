@@ -93,9 +93,6 @@ on property:sys.shutdown.requested=*
 on property:vold.decrypt=trigger_restart_framework
     restart vendor.camera.provider
 
-on property:vendor.dcvs.prop=1
-    start dcvs-sh
-
 # ═══════════════════════════════════════════════════════════════════════════
 # SERVICES
 # ═══════════════════════════════════════════════════════════════════════════

@@ -22,5 +22,8 @@
     <!-- Нет специальных face-auth сенсоров -->
     <integer-array name="config_face_auth_props">
     </integer-array>
+    
+    <!-- FPS info -->
+    <string name="config_fpsInfoSysNode" translatable="false">/sys/class/graphics/fb0/measured_fps</string>
 
 </resources>
