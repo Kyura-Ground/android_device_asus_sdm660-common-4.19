@@ -640,14 +640,13 @@ PRODUCT_PACKAGES += \
     init.qcom.sensors.sh \
     init.qcom.sh \
     init.qcom.usb.sh \
-    init.qti.dcvs.sh \
     init.zram.sh \
     init.zram_vm.sh
 
 # Ramdisk — RC файлы
 PRODUCT_PACKAGES += \
     fstab.qcom \
-    init.qcom.asus.rc \
+    init.asus.sdm660-common.rc \
     init.qcom.rc \
     init.qcom.usb.rc \
     init.recovery.qcom.rc \
