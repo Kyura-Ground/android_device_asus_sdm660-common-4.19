@@ -1,7 +1,9 @@
 # Copyright (c) 2009-2012, 2014-2021, The Linux Foundation. All rights reserved.
 #
 # ASUS X00TD / X01BD — init.qcom.rc
-# Kernel 4.19, Android 16, SDM660/SDM636
+# Kernel 4.19, Android 15/16, SDM660/SDM636
+# Tuned for FBE v1 + legacy Keymaster 3.0
+# Migrated from SchedTune to UCLAMP
 
 import /vendor/etc/init/hw/init.qcom.usb.rc
 import /vendor/etc/init/hw/init.target.rc
@@ -9,13 +11,14 @@ import /vendor/etc/init/hw/init.asus.sdm660-common.rc
 import /vendor/etc/init/hw/init.asus.X00TD.rc
 import /vendor/etc/init/hw/init.asus.X01BD.rc
 import /vendor/etc/init/hw/init.zram.rc
+import /vendor/etc/init/hw/init.uclamp.rc
 
-# ═══════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────
+# early-init
+# ─────────────────────────────────────────────────────────────
 on early-init
-# ═══════════════════════════════════════════════════════════════════════════
-
     mkdir /dev/cpuset 0750 system system
-    mkdir /dev/stune  0750 system system
     mkdir /dev/cpuctl 0755 system system
 
     chown system graphics /sys/class/drm/card0/device/power/control
@@ -23,11 +26,12 @@ on early-init
     chown root system /dev/kmsg
     chmod 0620 /dev/kmsg
 
-# ═══════════════════════════════════════════════════════════════════════════
-on init
-# ═══════════════════════════════════════════════════════════════════════════
 
-    # cpuset sub-groups
+# ─────────────────────────────────────────────────────────────
+# init
+# ─────────────────────────────────────────────────────────────
+on init
+    # ── cpuset sub-groups ──
     mkdir /dev/cpuset/foreground        0750 system system
     mkdir /dev/cpuset/background        0750 system system
     mkdir /dev/cpuset/system-background 0750 system system
@@ -48,30 +52,94 @@ on init
     chmod 0664 /dev/cpuset/top-app/cgroup.procs
     chmod 0664 /dev/cpuset/restricted/cgroup.procs
 
-    # EAS SchedTune
-    mkdir /dev/stune/foreground 0750 system system
-    mkdir /dev/stune/background 0750 system system
-    mkdir /dev/stune/top-app    0750 system system
-    mkdir /dev/stune/rt         0750 system system
+    # ── cpuctl sub-groups for UCLAMP ──
+    mkdir /dev/cpuctl/top-app           0755 system system
+    mkdir /dev/cpuctl/foreground        0755 system system
+    mkdir /dev/cpuctl/background        0755 system system
+    mkdir /dev/cpuctl/system-background 0755 system system
+    mkdir /dev/cpuctl/rt                0755 system system
 
-    chown system system /dev/stune
-    chown system system /dev/stune/foreground
-    chown system system /dev/stune/background
-    chown system system /dev/stune/top-app
-    chown system system /dev/stune/rt
-    chown system system /dev/stune/tasks
-    chown system system /dev/stune/foreground/tasks
-    chown system system /dev/stune/background/tasks
-    chown system system /dev/stune/top-app/tasks
-    chown system system /dev/stune/rt/tasks
+    # cpuctl tasks permissions
+    chown system system /dev/cpuctl/tasks
+    chown system system /dev/cpuctl/top-app/tasks
+    chown system system /dev/cpuctl/foreground/tasks
+    chown system system /dev/cpuctl/background/tasks
+    chown system system /dev/cpuctl/system-background/tasks
+    chown system system /dev/cpuctl/rt/tasks
 
-    chmod 0664 /dev/stune/tasks
-    chmod 0664 /dev/stune/foreground/tasks
-    chmod 0664 /dev/stune/background/tasks
-    chmod 0664 /dev/stune/top-app/tasks
-    chmod 0664 /dev/stune/rt/tasks
+    chmod 0664 /dev/cpuctl/tasks
+    chmod 0664 /dev/cpuctl/top-app/tasks
+    chmod 0664 /dev/cpuctl/foreground/tasks
+    chmod 0664 /dev/cpuctl/background/tasks
+    chmod 0664 /dev/cpuctl/system-background/tasks
+    chmod 0664 /dev/cpuctl/rt/tasks
 
-    # Memory cgroup
+    # cpuctl cgroup.procs permissions
+    chown system system /dev/cpuctl/cgroup.procs
+    chown system system /dev/cpuctl/top-app/cgroup.procs
+    chown system system /dev/cpuctl/foreground/cgroup.procs
+    chown system system /dev/cpuctl/background/cgroup.procs
+    chown system system /dev/cpuctl/system-background/cgroup.procs
+    chown system system /dev/cpuctl/rt/cgroup.procs
+
+    chmod 0664 /dev/cpuctl/cgroup.procs
+    chmod 0664 /dev/cpuctl/top-app/cgroup.procs
+    chmod 0664 /dev/cpuctl/foreground/cgroup.procs
+    chmod 0664 /dev/cpuctl/background/cgroup.procs
+    chmod 0664 /dev/cpuctl/system-background/cgroup.procs
+    chmod 0664 /dev/cpuctl/rt/cgroup.procs
+
+    # cpuctl uclamp knobs — ownership
+    chown system system /dev/cpuctl/uclamp.min
+    chown system system /dev/cpuctl/uclamp.max
+    chown system system /dev/cpuctl/uclamp.latency_sensitive
+
+    chown system system /dev/cpuctl/top-app/uclamp.min
+    chown system system /dev/cpuctl/top-app/uclamp.max
+    chown system system /dev/cpuctl/top-app/uclamp.latency_sensitive
+
+    chown system system /dev/cpuctl/foreground/uclamp.min
+    chown system system /dev/cpuctl/foreground/uclamp.max
+    chown system system /dev/cpuctl/foreground/uclamp.latency_sensitive
+
+    chown system system /dev/cpuctl/background/uclamp.min
+    chown system system /dev/cpuctl/background/uclamp.max
+    chown system system /dev/cpuctl/background/uclamp.latency_sensitive
+
+    chown system system /dev/cpuctl/system-background/uclamp.min
+    chown system system /dev/cpuctl/system-background/uclamp.max
+    chown system system /dev/cpuctl/system-background/uclamp.latency_sensitive
+
+    chown system system /dev/cpuctl/rt/uclamp.min
+    chown system system /dev/cpuctl/rt/uclamp.max
+    chown system system /dev/cpuctl/rt/uclamp.latency_sensitive
+
+    # cpuctl uclamp knobs — permissions
+    chmod 0664 /dev/cpuctl/uclamp.min
+    chmod 0664 /dev/cpuctl/uclamp.max
+    chmod 0664 /dev/cpuctl/uclamp.latency_sensitive
+
+    chmod 0664 /dev/cpuctl/top-app/uclamp.min
+    chmod 0664 /dev/cpuctl/top-app/uclamp.max
+    chmod 0664 /dev/cpuctl/top-app/uclamp.latency_sensitive
+
+    chmod 0664 /dev/cpuctl/foreground/uclamp.min
+    chmod 0664 /dev/cpuctl/foreground/uclamp.max
+    chmod 0664 /dev/cpuctl/foreground/uclamp.latency_sensitive
+
+    chmod 0664 /dev/cpuctl/background/uclamp.min
+    chmod 0664 /dev/cpuctl/background/uclamp.max
+    chmod 0664 /dev/cpuctl/background/uclamp.latency_sensitive
+
+    chmod 0664 /dev/cpuctl/system-background/uclamp.min
+    chmod 0664 /dev/cpuctl/system-background/uclamp.max
+    chmod 0664 /dev/cpuctl/system-background/uclamp.latency_sensitive
+
+    chmod 0664 /dev/cpuctl/rt/uclamp.min
+    chmod 0664 /dev/cpuctl/rt/uclamp.max
+    chmod 0664 /dev/cpuctl/rt/uclamp.latency_sensitive
+
+    # ── Memory cgroup ──
     mkdir /sys/fs/cgroup/memory/bg 0750 root system
     write /sys/fs/cgroup/memory/bg/memory.move_charge_at_immigrate 1
     chown root system /sys/fs/cgroup/memory/bg/tasks
@@ -81,54 +149,27 @@ on init
     write /sys/kernel/icnss/wpss_boot 1
 
     # Suspend mode
-    write /sys/power/mem_sleep "deep"
+    write /sys/power/mem_sleep deep
 
     # CPU accounting
     mount cgroup none /acct cpuacct
 
-    # blkio cgroup v1
-    mkdir /dev/blkio 0755 root system
-    mount cgroup none /dev/blkio blkio
 
-    chown root system /dev/blkio
-    chmod 0755 /dev/blkio
-    chown root system /dev/blkio/tasks
-    chmod 0666 /dev/blkio/tasks
-    chown root system /dev/blkio/blkio.weight
-    chmod 0664 /dev/blkio/blkio.weight
-    chown root system /dev/blkio/blkio.group_idle
-    chmod 0664 /dev/blkio/blkio.group_idle
-
-    write /dev/blkio/blkio.weight 1000
-    write /dev/blkio/blkio.group_idle 0
-
-    mkdir /dev/blkio/background 0755 root system
-    chown root system /dev/blkio/background/tasks
-    chmod 0666 /dev/blkio/background/tasks
-    chown root system /dev/blkio/background/blkio.weight
-    chmod 0664 /dev/blkio/background/blkio.weight
-    chown root system /dev/blkio/background/blkio.group_idle
-    chmod 0664 /dev/blkio/background/blkio.group_idle
-    write /dev/blkio/background/blkio.weight 200
-    write /dev/blkio/background/blkio.group_idle 0
-
-# ═══════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────
+# post-fs
+# ─────────────────────────────────────────────────────────────
 on post-fs
-# ═══════════════════════════════════════════════════════════════════════════
-
     write /sys/class/graphics/fb0/idle_time 100
 
-# ═══════════════════════════════════════════════════════════════════════════
-on early-boot
-# ═══════════════════════════════════════════════════════════════════════════
 
+# ─────────────────────────────────────────────────────────────
+# early-boot
+# ─────────────────────────────────────────────────────────────
+on early-boot
     setrlimit 8 67108864 67108864
 
-    # ADSP — required for audio
-    write /sys/kernel/boot_adsp/boot 1
-    # CDSP
+    # ADSP boot is handled in init.target.rc
     write /sys/kernel/boot_cdsp/boot 1
-    # NPU
     write /sys/devices/virtual/npu/msm_npu/boot 1
 
     setprop ro.sf.lcd_density ${persist.panel.density}
@@ -137,11 +178,11 @@ on early-boot
     chown system graphics /sys/class/backlight/backlight/brightness
     chown system graphics /sys/class/backlight/backlight/max_brightness
 
-# ═══════════════════════════════════════════════════════════════════════════
-on boot
-# ═══════════════════════════════════════════════════════════════════════════
 
-    start vendor.rmt_storage
+# ─────────────────────────────────────────────────────────────
+# boot
+# ─────────────────────────────────────────────────────────────
+on boot
     chmod 0444 /sys/devices/soc0/serial_number
 
     # Initial cpusets (post_boot.sh sets final values)
@@ -197,6 +238,7 @@ on boot
     mkdir /persist/misc 0770 system system
     mkdir /persist/alarm 0770 system system
     mkdir /persist/display 0770 system graphics
+
     mkdir /mnt/vendor/persist/alarm     0777 system system
     chmod 0666 /mnt/vendor/persist/alarm/data
     mkdir /mnt/vendor/persist/drm       0770 system system
@@ -222,19 +264,20 @@ on boot
     mkdir /mnt/vendor/persist/vpp        0770 media media
     mkdir /mnt/vendor/persist/hvdcp_opti 0770 root system
 
-    # Camera / WiFi / USB (from init.target.rc original)
+    # Camera / WiFi / USB
     setprop persist.camera.gyro.disable 0
     chown wifi wifi /sys/module/wlan/parameters/fwpath
-    setprop vendor.usb.rndis.func.name "rndis_bam"
-    setprop vendor.usb.rmnet.func.name "rmnet_bam"
-    setprop vendor.usb.rmnet.inst.name "rmnet"
-    setprop vendor.usb.dpl.inst.name "dpl"
-    setprop vendor.usb.qdss.inst.name "qdss"
+    setprop vendor.usb.rndis.func.name rndis_bam
+    setprop vendor.usb.rmnet.func.name rmnet_bam
+    setprop vendor.usb.rmnet.inst.name rmnet
+    setprop vendor.usb.dpl.inst.name dpl
+    setprop vendor.usb.qdss.inst.name qdss
 
-# ═══════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────
+# post-fs-data
+# ─────────────────────────────────────────────────────────────
 on post-fs-data
-# ═══════════════════════════════════════════════════════════════════════════
-
     mkdir /data/vendor/misc            01771 system system
     mkdir /data/vendor/ssrdump         0770 root system
     mkdir /data/vendor/display         0770 system graphics
@@ -333,7 +376,7 @@ on post-fs-data
     mkdir /data/vendor/swap 0770 root system
     chmod 2770 /data/vendor/swap
 
-    # eMMC + dm I/O tuning (pre-boot, post_boot.sh sets final)
+    # eMMC + dm I/O tuning
     write /sys/block/mmcblk0/queue/rotational 0
     write /sys/block/mmcblk0/queue/iostats 0
     write /sys/block/mmcblk0/queue/add_random 0
@@ -361,10 +404,10 @@ on post-fs-data
 
     setprop vold.post_fs_data_done 1
 
-# ═══════════════════════════════════════════════════════════════════════════
-# PROPERTY TRIGGERS
-# ═══════════════════════════════════════════════════════════════════════════
 
+# ─────────────────────────────────────────────────────────────
+# property triggers
+# ─────────────────────────────────────────────────────────────
 on property:sys.boot_completed=1
     write /dev/kmsg "Boot completed"
 
@@ -385,10 +428,6 @@ on property:sys.boot_completed=1
 
     # LPM
     write /sys/module/lpm_levels/parameters/sleep_disabled 0
-
-on property:ro.vendor.iocgrp.config=1
-    write /dev/blkio/blkio.weight 1000
-    write /dev/blkio/background/blkio.weight 200
 
 on property:vendor.media.target.version=*
     setprop vendor.sys.media.target.version ${vendor.media.target.version}
@@ -426,10 +465,10 @@ on property:vold.decrypt=trigger_restart_framework
     start qcom-c_main-sh
     restart vendor.audio-hal
 
-# ═══════════════════════════════════════════════════════════════════════════
-# SERVICES
-# ═══════════════════════════════════════════════════════════════════════════
 
+# ─────────────────────────────────────────────────────────────
+# services
+# ─────────────────────────────────────────────────────────────
 service qcom-c_main-sh /vendor/bin/init.class_main.sh
     class main
     user root
@@ -443,7 +482,7 @@ service vendor.qrtr-ns /vendor/bin/qrtr-ns -f
     capabilities NET_BIND_SERVICE
     task_profiles ServiceCapacityLow
 
-service irsc_util /vendor/bin/irsc_util "/vendor/etc/sec_config"
+service irsc_util /vendor/bin/irsc_util /vendor/etc/sec_config
     class core
     user root
     oneshot
@@ -500,13 +539,6 @@ service hostapd_fst /vendor/bin/hw/hostapd -dd -g /data/vendor/wifi/hostapd/glob
     group wifi
     disabled
     oneshot
-
-service charger /system/bin/charger
-    class charger
-    user system
-    group system graphics input
-    capabilities SYS_BOOT
-    seclabel u:r:charger:s0
 
 service vendor.power_off_alarm /vendor/bin/power_off_alarm
     class core

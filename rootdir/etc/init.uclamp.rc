@@ -1,0 +1,34 @@
+on property:vendor.post_boot.parsed=1
+    write /proc/sys/kernel/sched_util_clamp_min 0
+    write /proc/sys/kernel/sched_util_clamp_max 1024
+    write /proc/sys/kernel/sched_util_clamp_min_rt_default 96
+
+    # root cpu group defaults
+    write /dev/cpuctl/uclamp.min 0
+    write /dev/cpuctl/uclamp.max max
+    write /dev/cpuctl/uclamp.latency_sensitive 0
+
+    # top-app
+    write /dev/cpuctl/top-app/uclamp.min 20
+    write /dev/cpuctl/top-app/uclamp.max max
+    write /dev/cpuctl/top-app/uclamp.latency_sensitive 1
+
+    # foreground
+    write /dev/cpuctl/foreground/uclamp.min 10
+    write /dev/cpuctl/foreground/uclamp.max max
+    write /dev/cpuctl/foreground/uclamp.latency_sensitive 0
+
+    # background
+    write /dev/cpuctl/background/uclamp.min 0
+    write /dev/cpuctl/background/uclamp.max 50
+    write /dev/cpuctl/background/uclamp.latency_sensitive 0
+
+    # system-background
+    write /dev/cpuctl/system-background/uclamp.min 0
+    write /dev/cpuctl/system-background/uclamp.max 40
+    write /dev/cpuctl/system-background/uclamp.latency_sensitive 0
+
+    # rt
+    write /dev/cpuctl/rt/uclamp.min 15
+    write /dev/cpuctl/rt/uclamp.max max
+    write /dev/cpuctl/rt/uclamp.latency_sensitive 1
