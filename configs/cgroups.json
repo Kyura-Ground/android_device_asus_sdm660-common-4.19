@@ -13,28 +13,6 @@
       "Mode": "0755",
       "UID": "system",
       "GID": "system"
-    },
-    {
-      "Controller": "schedtune",
-      "Path": "/dev/stune",
-      "Mode": "0755",
-      "UID": "system",
-      "GID": "system"
     }
-  ],
-  "Cgroups2": {
-    "Path": "/sys/fs/cgroup",
-    "Mode": "0755",
-    "UID": "system",
-    "GID": "system",
-    "Controllers": [
-      {
-        "Controller": "freezer",
-        "Path": ".",
-        "Mode": "0755",
-        "UID": "system",
-        "GID": "system"
-      }
-    ]
-  }
+  ]
 }

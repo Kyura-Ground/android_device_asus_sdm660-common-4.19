@@ -1,7 +1,7 @@
 #!/vendor/bin/sh
 
 # ═══════════════════════════════════════════════════════════════════════════
-# init.qcom.post_boot.sh for SDM660/SDM636 on Kernel 4.19 (EAS)
+# init.qcom.post_boot.sh for SDM660/SDM636 on Kernel 4.19 (EAS + UCLAMP)
 # ASUS X00TD (ZenFone Max Pro M1) / X01BD (ZenFone Max Pro M2)
 #
 # Correct CPU topology:
@@ -10,6 +10,8 @@
 #
 # No hardcoded CPU caps. Real min/max read from kernel sysfs.
 # Works automatically on both SDM636 and SDM660.
+#
+# SchedTune REMOVED — UCLAMP is configured via init.uclamp.rc
 # ═══════════════════════════════════════════════════════════════════════════
 
 LOGTAG="post_boot_sdm660"
@@ -80,24 +82,7 @@ configure_cpu_governor() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 2. SCHEDTUNE (EAS)
-# ═══════════════════════════════════════════════════════════════════════════
-configure_eas_schedtune() {
-    write /dev/stune/top-app/schedtune.boost 10
-    write /dev/stune/top-app/schedtune.prefer_idle 1
-
-    write /dev/stune/foreground/schedtune.boost 0
-    write /dev/stune/foreground/schedtune.prefer_idle 0
-
-    write /dev/stune/background/schedtune.boost 0
-    write /dev/stune/background/schedtune.prefer_idle 0
-
-    write /dev/stune/rt/schedtune.boost 5
-    write /dev/stune/rt/schedtune.prefer_idle 1
-}
-
-# ═══════════════════════════════════════════════════════════════════════════
-# 3. CPUSETS
+# 2. CPUSETS
 # ═══════════════════════════════════════════════════════════════════════════
 configure_cpusets() {
     # LITTLE = cpu0-3 → background tasks (power saving)
@@ -112,7 +97,7 @@ configure_cpusets() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 4. WALT TUNING
+# 3. WALT TUNING
 # ═══════════════════════════════════════════════════════════════════════════
 configure_walt() {
     write /proc/sys/kernel/sched_walt_rotate_big_tasks 1
@@ -123,7 +108,7 @@ configure_walt() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 5. CORE CONTROL
+# 4. CORE CONTROL
 # ═══════════════════════════════════════════════════════════════════════════
 configure_core_ctl() {
     # LITTLE cluster core_ctl = cpu0
@@ -148,7 +133,7 @@ configure_core_ctl() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 6. BUS DCVS
+# 5. BUS DCVS
 # ═══════════════════════════════════════════════════════════════════════════
 configure_bus_dcvs() {
     for cpubw in /sys/devices/platform/soc/*cpu-cpu-ddr-bw/devfreq/*cpu-cpu-ddr-bw; do
@@ -191,7 +176,7 @@ configure_bus_dcvs() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 7. I/O TUNING — final values after boot
+# 6. I/O TUNING — final values after boot
 # ═══════════════════════════════════════════════════════════════════════════
 configure_storage_io() {
     # Internal eMMC
@@ -217,7 +202,7 @@ configure_storage_io() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 8. DISABLE LEGACY KERNEL THERMAL
+# 7. DISABLE LEGACY KERNEL THERMAL
 # ═══════════════════════════════════════════════════════════════════════════
 disable_legacy_kernel_thermal() {
     write /sys/module/msm_thermal/parameters/enabled N
@@ -247,11 +232,14 @@ main() {
             disable_legacy_kernel_thermal
             configure_core_ctl
             configure_cpu_governor
-            configure_eas_schedtune
             configure_cpusets
             configure_walt
             configure_bus_dcvs
             configure_storage_io
+
+            # NOTE: SchedTune removed.
+            # UCLAMP is configured via init.uclamp.rc
+            # triggered by vendor.post_boot.parsed=1
 
             write /proc/sys/kernel/sched_boost 0
 
@@ -282,6 +270,7 @@ main() {
             ;;
     esac
 
+    # This triggers init.uclamp.rc
     setprop vendor.post_boot.parsed 1
 }
 
