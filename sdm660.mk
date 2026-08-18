@@ -648,6 +648,7 @@ PRODUCT_PACKAGES += \
     init.qcom.usb.rc \
     init.recovery.qcom.rc \
     init.target.rc \
+    init.uclamp.rc \
     init.zram.rc \
     ueventd.qcom.rc
 
