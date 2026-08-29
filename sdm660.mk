@@ -182,9 +182,6 @@ PRODUCT_PACKAGES += \
     android.hardware.graphics.composer@2.1-service \
     android.hardware.graphics.mapper@3.0-impl-qti-display \
     android.hardware.graphics.mapper@4.0-impl-qti-display \
-    android.frameworks.displayservice@1.0 \
-    android.frameworks.displayservice@1.0_32 \
-    android.frameworks.displayservice@1.0.vendor \
     gralloc.sdm660 \
     hwcomposer.qcom \
     libdisplayconfig \
