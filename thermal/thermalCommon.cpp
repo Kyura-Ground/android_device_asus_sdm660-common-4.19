@@ -460,7 +460,7 @@ void ThermalCommon::initThreshold(struct therm_sensor& sensor) {
     std::string buf;
     int ret = 0;
     int idx;
-    int next_trip;
+    float next_trip;
     int curr_trip;
     int hyst_temp = 0;
 
@@ -486,40 +486,42 @@ void ThermalCommon::initThreshold(struct therm_sensor& sensor) {
         return;
     }
 
-    next_trip = (int)UNKNOWN_TEMPERATURE;
+    next_trip = UNKNOWN_TEMPERATURE;
     for (idx = 0; idx <= (int)ThrottlingSeverity::SHUTDOWN; idx++) {
         if (isnan(sensor.thresh.hotThrottlingThresholds[idx]) ||
             idx <= (int)sensor.t.throttlingStatus)
             continue;
-        next_trip = (int)(sensor.thresh.hotThrottlingThresholds[idx] *
-                    sensor.mulFactor);
+        next_trip = sensor.thresh.hotThrottlingThresholds[idx] *
+                    sensor.mulFactor;
         break;
     }
 
-    if (!isnan((float)next_trip)) {
+    if (!isnan(next_trip)) {
         LOG(DEBUG) << "Sensor: " << sensor.t.name
                    << " high trip:" << next_trip;
         snprintf(file_name, sizeof(file_name), TRIP_FILE_FORMAT,
                  sensor.tzn);
         writeToFile(std::string_view(file_name),
-                    std::to_string(next_trip));
+                    std::to_string(static_cast<int>(next_trip)));
     }
 
-    if (sensor.t.throttlingStatus != ThrottlingSeverity::NONE) {
+    hyst_temp = DEFAULT_HYSTERESIS;
+    if (sensor.t.throttlingStatus != ThrottlingSeverity::NONE &&
+        !isnan(next_trip)) {
+        if (isnan(sensor.thresh.hotThrottlingThresholds[
+                      (int)sensor.t.throttlingStatus]))
+            return;
         curr_trip = (int)(sensor.thresh.hotThrottlingThresholds[
                         (int)sensor.t.throttlingStatus] *
                     sensor.mulFactor);
-        if (!isnan((float)next_trip))
-            hyst_temp = (next_trip - curr_trip) + DEFAULT_HYSTERESIS;
-        else
-            hyst_temp = DEFAULT_HYSTERESIS;
-        LOG(DEBUG) << "Sensor: " << sensor.t.name
-                   << " hysteresis:" << hyst_temp;
-        snprintf(file_name, sizeof(file_name), HYST_FILE_FORMAT,
-                 sensor.tzn);
-        writeToFile(std::string_view(file_name),
-                    std::to_string(hyst_temp));
+        hyst_temp = (next_trip - curr_trip) + DEFAULT_HYSTERESIS;
     }
+    LOG(DEBUG) << "Sensor: " << sensor.t.name
+               << " hysteresis:" << hyst_temp;
+    snprintf(file_name, sizeof(file_name), HYST_FILE_FORMAT,
+             sensor.tzn);
+    writeToFile(std::string_view(file_name),
+                std::to_string(hyst_temp));
 }
 
 }  // namespace aidl::android::hardware::thermal::implementation
