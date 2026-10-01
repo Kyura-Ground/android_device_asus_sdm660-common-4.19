@@ -278,6 +278,11 @@ BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := odm product system system_ext ven
 # Leave 4 MiB for metadata and alignment, as in the official device layout.
 BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 5129633792
 
+# Match the vendor reservation guard so WITHOUT_RESERVED_SIZE remains effective.
+ifeq (,$(filter true, $(WITHOUT_RESERVED_SIZE) $(WITH_GAPPS)))
+BOARD_PRODUCTIMAGE_PARTITION_RESERVED_SIZE := 1000000000
+endif
+
 include vendor/infinity/config/BoardConfigReservedSize.mk
 
 TARGET_USERIMAGES_USE_EXT4 := true
