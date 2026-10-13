@@ -90,54 +90,46 @@ on init
     chmod 0664 /dev/cpuctl/rt/cgroup.procs
 
     # cpuctl uclamp knobs — ownership
-    chown system system /dev/cpuctl/uclamp.min
-    chown system system /dev/cpuctl/uclamp.max
-    chown system system /dev/cpuctl/uclamp.latency_sensitive
+    chown system system /dev/cpuctl/top-app/cpu.uclamp.min
+    chown system system /dev/cpuctl/top-app/cpu.uclamp.max
+    chown system system /dev/cpuctl/top-app/cpu.uclamp.latency_sensitive
 
-    chown system system /dev/cpuctl/top-app/uclamp.min
-    chown system system /dev/cpuctl/top-app/uclamp.max
-    chown system system /dev/cpuctl/top-app/uclamp.latency_sensitive
+    chown system system /dev/cpuctl/foreground/cpu.uclamp.min
+    chown system system /dev/cpuctl/foreground/cpu.uclamp.max
+    chown system system /dev/cpuctl/foreground/cpu.uclamp.latency_sensitive
 
-    chown system system /dev/cpuctl/foreground/uclamp.min
-    chown system system /dev/cpuctl/foreground/uclamp.max
-    chown system system /dev/cpuctl/foreground/uclamp.latency_sensitive
+    chown system system /dev/cpuctl/background/cpu.uclamp.min
+    chown system system /dev/cpuctl/background/cpu.uclamp.max
+    chown system system /dev/cpuctl/background/cpu.uclamp.latency_sensitive
 
-    chown system system /dev/cpuctl/background/uclamp.min
-    chown system system /dev/cpuctl/background/uclamp.max
-    chown system system /dev/cpuctl/background/uclamp.latency_sensitive
+    chown system system /dev/cpuctl/system-background/cpu.uclamp.min
+    chown system system /dev/cpuctl/system-background/cpu.uclamp.max
+    chown system system /dev/cpuctl/system-background/cpu.uclamp.latency_sensitive
 
-    chown system system /dev/cpuctl/system-background/uclamp.min
-    chown system system /dev/cpuctl/system-background/uclamp.max
-    chown system system /dev/cpuctl/system-background/uclamp.latency_sensitive
-
-    chown system system /dev/cpuctl/rt/uclamp.min
-    chown system system /dev/cpuctl/rt/uclamp.max
-    chown system system /dev/cpuctl/rt/uclamp.latency_sensitive
+    chown system system /dev/cpuctl/rt/cpu.uclamp.min
+    chown system system /dev/cpuctl/rt/cpu.uclamp.max
+    chown system system /dev/cpuctl/rt/cpu.uclamp.latency_sensitive
 
     # cpuctl uclamp knobs — permissions
-    chmod 0664 /dev/cpuctl/uclamp.min
-    chmod 0664 /dev/cpuctl/uclamp.max
-    chmod 0664 /dev/cpuctl/uclamp.latency_sensitive
+    chmod 0664 /dev/cpuctl/top-app/cpu.uclamp.min
+    chmod 0664 /dev/cpuctl/top-app/cpu.uclamp.max
+    chmod 0664 /dev/cpuctl/top-app/cpu.uclamp.latency_sensitive
 
-    chmod 0664 /dev/cpuctl/top-app/uclamp.min
-    chmod 0664 /dev/cpuctl/top-app/uclamp.max
-    chmod 0664 /dev/cpuctl/top-app/uclamp.latency_sensitive
+    chmod 0664 /dev/cpuctl/foreground/cpu.uclamp.min
+    chmod 0664 /dev/cpuctl/foreground/cpu.uclamp.max
+    chmod 0664 /dev/cpuctl/foreground/cpu.uclamp.latency_sensitive
 
-    chmod 0664 /dev/cpuctl/foreground/uclamp.min
-    chmod 0664 /dev/cpuctl/foreground/uclamp.max
-    chmod 0664 /dev/cpuctl/foreground/uclamp.latency_sensitive
+    chmod 0664 /dev/cpuctl/background/cpu.uclamp.min
+    chmod 0664 /dev/cpuctl/background/cpu.uclamp.max
+    chmod 0664 /dev/cpuctl/background/cpu.uclamp.latency_sensitive
 
-    chmod 0664 /dev/cpuctl/background/uclamp.min
-    chmod 0664 /dev/cpuctl/background/uclamp.max
-    chmod 0664 /dev/cpuctl/background/uclamp.latency_sensitive
+    chmod 0664 /dev/cpuctl/system-background/cpu.uclamp.min
+    chmod 0664 /dev/cpuctl/system-background/cpu.uclamp.max
+    chmod 0664 /dev/cpuctl/system-background/cpu.uclamp.latency_sensitive
 
-    chmod 0664 /dev/cpuctl/system-background/uclamp.min
-    chmod 0664 /dev/cpuctl/system-background/uclamp.max
-    chmod 0664 /dev/cpuctl/system-background/uclamp.latency_sensitive
-
-    chmod 0664 /dev/cpuctl/rt/uclamp.min
-    chmod 0664 /dev/cpuctl/rt/uclamp.max
-    chmod 0664 /dev/cpuctl/rt/uclamp.latency_sensitive
+    chmod 0664 /dev/cpuctl/rt/cpu.uclamp.min
+    chmod 0664 /dev/cpuctl/rt/cpu.uclamp.max
+    chmod 0664 /dev/cpuctl/rt/cpu.uclamp.latency_sensitive
 
     # ── Memory cgroup ──
     mkdir /sys/fs/cgroup/memory/bg 0750 root system

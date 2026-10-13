@@ -1,11 +1,5 @@
 {
-  "Attributes": [
-    {
-      "Name": "CPUShares",
-      "Controller": "cpu",
-      "File": "cpu.shares"
-    }
-  ],
+  "Attributes": [],
   "Profiles": [
     {
       "Name": "HighPerformance",
