@@ -62,9 +62,9 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
 <mixer>
-    <!-- Fix for INT4_MI2S_RX Format error -->
-    <ctl name="INT4_MI2S_RX Format" value="S16_LE" />
-    <ctl name="INT4_MI2S_RX SampleRate" value="KHZ_48" />
+    <!-- TFA speaker backend defaults; INT4 WSA controls are unavailable. -->
+    <ctl name="TERT_MI2S_RX Format" value="S16_LE" />
+    <ctl name="TERT_MI2S_RX SampleRate" value="KHZ_48" />
     
     <!-- Missing formats for Primary Codec (Headphones/Speaker) -->
     <ctl name="INT0_MI2S_RX Format" value="S16_LE" />
