@@ -69,7 +69,7 @@ system_ext/framework/com.quicinc.cne.constants-V2.0-java.jar|2b4bb4c565c12f5be07
 system_ext/framework/com.quicinc.cne.constants-V2.1-java.jar|7b7c45c157f7840ed1ec16df764a5e81aacf7716
 system_ext/framework/dpmapi.jar|437878b6f26ec557c61b67e568fee42406ae20c2
 system_ext/framework/qcrilhook.jar|d9778a3f8da09bf25c4905fb4e5d0fd7310f1f42
-system_ext/framework/qti-telephony-common.jar|875891033b812474668202875e484104628c680f
+system_ext/framework/qti-telephony-common.jar|b56a247d21e72fc7b0b1d5882fb4d99041374dbd
 system_ext/framework/remotesimlockmanagerlibrary.jar|964306688a3062d0ec507e471d2f4a1a1911e765
 system_ext/framework/uimgbalibrary.jar|60a64011ce419cd980aaa58bfe131b79ff616b69
 system_ext/framework/uimgbamanagerlibrary.jar|881baefa00e98f7d25ed33b7ec69e1f0eb821039
