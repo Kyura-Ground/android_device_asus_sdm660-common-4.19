@@ -19,9 +19,6 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/non_ab_device.mk)
 # PRODUCT_RETROFIT_DYNAMIC_PARTITIONS is restricted to A/B by releasetools.
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
-# Inherit our signing key
-$(call inherit-product-if-exists, vendor/evolution-priv/keys/keys.mk)
-
 # Qualcomm common definitions
 $(call inherit-product, hardware/qcom-caf/common/common.mk)
 
