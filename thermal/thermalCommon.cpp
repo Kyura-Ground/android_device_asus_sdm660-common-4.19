@@ -373,10 +373,25 @@ int ThermalCommon::read_cdev_state(struct therm_cdev& cdev) {
     return cdev.c.value;
 }
 
+static int getHysteresis(TemperatureType type) {
+    // BCL widths use the native units from the SDM660 thermal zones.
+    switch (type) {
+        case TemperatureType::BCL_CURRENT:
+            return 200;  // ibat-high: mA
+        case TemperatureType::BCL_VOLTAGE:
+            return 100;  // vbat_adc: mV
+        case TemperatureType::BCL_PERCENTAGE:
+            return 0;    // soc: percentage points
+        default:
+            return DEFAULT_HYSTERESIS;  // milliCelsius
+    }
+}
+
 int ThermalCommon::estimateSeverity(struct therm_sensor& sensor) {
     int idx = 0;
     ThrottlingSeverity severity = ThrottlingSeverity::NONE;
     float temp = sensor.t.value;
+    const float hysteresis = getHysteresis(sensor.t.type) / (float)sensor.mulFactor;
 
     if (std::isnan(temp))
         return -1;
@@ -386,11 +401,11 @@ int ThermalCommon::estimateSeverity(struct therm_sensor& sensor) {
             if ((sensor.positiveThresh &&
                  !isnan(sensor.thresh.hotThrottlingThresholds[idx]) &&
                  temp >= (sensor.thresh.hotThrottlingThresholds[idx] -
-                          DEFAULT_HYSTERESIS / sensor.mulFactor)) ||
+                          hysteresis)) ||
                 (!sensor.positiveThresh &&
                  !isnan(sensor.thresh.coldThrottlingThresholds[idx]) &&
                  temp <= (sensor.thresh.coldThrottlingThresholds[idx] +
-                          DEFAULT_HYSTERESIS / sensor.mulFactor)))
+                          hysteresis)))
                 break;
             continue;
         }
@@ -505,7 +520,7 @@ void ThermalCommon::initThreshold(struct therm_sensor& sensor) {
                     std::to_string(static_cast<int>(next_trip)));
     }
 
-    hyst_temp = DEFAULT_HYSTERESIS;
+    hyst_temp = getHysteresis(sensor.t.type);
     if (sensor.t.throttlingStatus != ThrottlingSeverity::NONE &&
         !isnan(next_trip)) {
         if (isnan(sensor.thresh.hotThrottlingThresholds[
@@ -514,7 +529,7 @@ void ThermalCommon::initThreshold(struct therm_sensor& sensor) {
         curr_trip = (int)(sensor.thresh.hotThrottlingThresholds[
                         (int)sensor.t.throttlingStatus] *
                     sensor.mulFactor);
-        hyst_temp = (next_trip - curr_trip) + DEFAULT_HYSTERESIS;
+        hyst_temp += next_trip - curr_trip;
     }
     LOG(DEBUG) << "Sensor: " << sensor.t.name
                << " hysteresis:" << hyst_temp;
