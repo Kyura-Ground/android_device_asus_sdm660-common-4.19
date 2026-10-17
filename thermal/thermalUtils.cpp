@@ -29,9 +29,11 @@ ThermalUtils::ThermalUtils(const ueventCB &inp_cb)
         is_sensor_init = true;
         sensorList = cmnInst.fetch_sensor_list();
         std::lock_guard<std::mutex> _lock(sens_cb_mutex);
-        for (struct therm_sensor sens : sensorList) {
-            thermalConfig[sens.sensor_name] = sens;
-            cmnInst.read_temperature(sens);
+        for (const struct therm_sensor& sensor : sensorList) {
+            struct therm_sensor& sens = thermalConfig[sensor.sensor_name];
+            sens = sensor;
+            if (cmnInst.read_temperature(sens) < 0)
+                continue;
             cmnInst.estimateSeverity(sens);
             cmnInst.initThreshold(sens);
         }
@@ -79,9 +81,9 @@ int ThermalUtils::readTemperatures(bool filterType, TemperatureType type,
         if (filterType && sens.t.type != type)
             continue;
         ret = cmnInst.read_temperature(sens);
-        if (ret < 0)
-            return ret;
-        Notify(sens);
+        if (ret >= 0)
+            Notify(sens);
+        // AIDL keeps offline sensors in the list with an unavailable (NaN) value.
         temp.push_back(sens.t);
     }
 
