@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <cerrno>
+#include <charconv>
 #include <cstdio>
 #include <cinttypes>
 #include <cstdlib>
@@ -102,12 +104,13 @@ static int readLineFromFile(std::string_view path, std::string& out) {
         return -errno;
     }
 
+    errno = 0;
     fgets_ret = fgets(buf, MAX_LENGTH, fd);
     if (NULL != fgets_ret) {
         rv = (int)strlen(buf);
         out.append(buf, rv);
     } else {
-        rv = ferror(fd);
+        rv = ferror(fd) ? -(errno ? errno : EIO) : 0;
     }
 
     fclose(fd);
@@ -375,6 +378,9 @@ int ThermalCommon::estimateSeverity(struct therm_sensor& sensor) {
     ThrottlingSeverity severity = ThrottlingSeverity::NONE;
     float temp = sensor.t.value;
 
+    if (std::isnan(temp))
+        return -1;
+
     for (idx = (int)ThrottlingSeverity::SHUTDOWN; idx >= 0; idx--) {
         if (idx == (int)sensor.t.throttlingStatus) {
             if ((sensor.positiveThresh &&
@@ -423,11 +429,19 @@ int ThermalCommon::read_temperature(struct therm_sensor& sensor) {
              sensor.tzn);
     ret = readLineFromFile(std::string(file_name), buf);
     if (ret <= 0) {
+        sensor.t.value = UNKNOWN_TEMPERATURE;
         LOG(ERROR) << "Temperature read error:" << ret
                    << " for sensor " << sensor.t.name;
         return -1;
     }
-    sensor.t.value = (float)std::atoi(buf.c_str()) / (float)sensor.mulFactor;
+    int raw_temp = 0;
+    const auto [end, error] = std::from_chars(buf.data(), buf.data() + buf.size(), raw_temp);
+    if (error != std::errc() || end != buf.data() + buf.size()) {
+        sensor.t.value = UNKNOWN_TEMPERATURE;
+        LOG(ERROR) << "Invalid temperature reading for sensor " << sensor.t.name;
+        return -EINVAL;
+    }
+    sensor.t.value = (float)raw_temp / (float)sensor.mulFactor;
 
     if (sensor.thresh.type == TemperatureType::CPU &&
         sensor.sensor_name == "cpuss-0-usr" &&
