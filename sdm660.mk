@@ -98,9 +98,15 @@ PRODUCT_PACKAGES += \
     libssrec
 
 # Аудио — конфигурационные файлы устройства
+SDM660_AUDIO_EFFECTS_CONFIG := $(LOCAL_PATH)/configs/audio/audio_effects.xml
+ifeq ($(TARGET_USES_DOLBY),true)
+SDM660_AUDIO_EFFECTS_CONFIG := device/asus/sdm660-common/dolby/audio_effects.xml
+$(call inherit-product, device/asus/sdm660-common/dolby/dolby.mk)
+endif
+
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio/audio_configs.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_configs.xml \
-    $(LOCAL_PATH)/configs/audio/audio_effects.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_effects.xml \
+    $(SDM660_AUDIO_EFFECTS_CONFIG):$(TARGET_COPY_OUT_VENDOR)/etc/audio_effects.xml \
     $(LOCAL_PATH)/configs/audio/audio_output_policy.conf:$(TARGET_COPY_OUT_VENDOR)/etc/audio_output_policy.conf \
     $(LOCAL_PATH)/configs/audio/audio_platform_info_intcodec.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_platform_info_intcodec.xml \
     $(LOCAL_PATH)/configs/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml \

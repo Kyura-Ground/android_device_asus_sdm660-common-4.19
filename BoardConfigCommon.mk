@@ -352,6 +352,10 @@ include device/qcom/sepolicy-legacy-um/SEPolicy.mk
 BOARD_VENDOR_SEPOLICY_DIRS += \
     $(VENDOR_PATH)/sepolicy/vendor
 
+ifeq ($(TARGET_USES_DOLBY),true)
+BOARD_VENDOR_SEPOLICY_DIRS += $(VENDOR_PATH)/dolby/sepolicy/vendor
+endif
+
 SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += \
     $(VENDOR_PATH)/sepolicy/public
 

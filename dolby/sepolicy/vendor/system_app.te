@@ -1,0 +1,2 @@
+# LunarisDolby is signed with the platform certificate and shares the system UID.
+hal_client_domain(system_app, hal_dms)
